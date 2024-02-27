@@ -1,9 +1,6 @@
 
-[	cpp:S1238"APass expensive to copy object "ip_address" by reference to const.(íÃ±«øÿÿÿÿ
+V	cpp:S1238"APass expensive to copy object "ip_address" by reference to const.(¾­ß®
 G	cpp:S5995"2Replace this use of "bind" with "std::bind_front".(øÈì„
-G	cpp:S5995"2Replace this use of "bind" with "std::bind_front".(´Š®
-G	cpp:S5995("2Replace this use of "bind" with "std::bind_front".(º¡£í
-L	cpp:S59953"2Replace this use of "bind" with "std::bind_front".(°–éğøÿÿÿÿ
-G	cpp:S59954"2Replace this use of "bind" with "std::bind_front".(ÚŸù€
-L	cpp:S59959"2Replace this use of "bind" with "std::bind_front".(ìßçÈùÿÿÿÿ
-G	cpp:S5995="2Replace this use of "bind" with "std::bind_front".(¬É«
+G	cpp:S5995,"2Replace this use of "bind" with "std::bind_front".(º¡£í
+L	cpp:S59958"2Replace this use of "bind" with "std::bind_front".(°–éğøÿÿÿÿ
+G	cpp:S59959"2Replace this use of "bind" with "std::bind_front".(ÚŸù€

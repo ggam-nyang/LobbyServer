@@ -21,10 +21,11 @@ class Client {
     asio::ip::tcp::socket sock;
     shared_ptr<boost::asio::io_service::work> work;
     thread_group thread_group;
-    std::string sbuf;
-    std::string rbuf;
-    char buf[80];
+    std::string writeBuffer;
+    std::string readBuffer;
+    std::array<char, 80> buffer;
     boost::mutex lock;
+    bool isSetId = false;
 
 public:
     Client(std::string ip_address, unsigned short port_num);

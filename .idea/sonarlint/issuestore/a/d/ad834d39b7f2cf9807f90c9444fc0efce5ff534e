@@ -1,36 +1,7 @@
 
-y	cpp:S5276œ"Wimplicit conversion loses integer precision: 'size_type' (aka 'unsigned long') to 'int'(ÿ ›žúÿÿÿÿ8ÆÝÓ…Ý1
-r	cpp:S50258"QReplace the use of "new" with an operation that automatically manages the memory.(þê£Œúÿÿÿÿ8—ÞÓ…Ý1
-E	cpp:S5995;")Replace this use of "bind" with a lambda.(Óþ·è8™ÞÓ…Ý1
-S	cpp:S5995}"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8©ÞÓ…Ý1
-T	cpp:S5995ˆ"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8¬ÞÓ…Ý1
-F	cpp:S5817")This function should be declared "const".(ð—Üˆ8ž®ªËÝ1
-[	cpp:S1238">Pass expensive to copy object "message" by reference to const.(ð—Üˆ8àëƒ†Ý1
-m	cpp:S5566®"KChange this raw for-loop to a range for-loop or an "std::ranges::for_each".(«÷¤úÿÿÿÿ8²‚üÊÝ1
-T	cpp:S5995±"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8µÞÓ…Ý1
-T	cpp:S5995¸"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8·ÞÓ…Ý1
-h	cpp:S5566Ó"KChange this raw for-loop to a range for-loop or an "std::ranges::for_each".(¥Œ¸‡8»‚üÊÝ1
-T	cpp:S5995Å"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8¾ÞÓ…Ý1
-T	cpp:S5995Í"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8¿ÞÓ…Ý1
-T	cpp:S5995Ö"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8ÂÞÓ…Ý1
-T	cpp:S5995á"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8ÄÞÓ…Ý1
-T	cpp:S5995æ"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8ÆÞÓ…Ý1
-h	cpp:S5566€"KChange this raw for-loop to a range for-loop or an "std::ranges::for_each".(¥Œ¸‡8É‚üÊÝ1
-T	cpp:S5995ì"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8ÉÞÓ…Ý1
-T	cpp:S5995ô"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8ËÞÓ…Ý1
-T	cpp:S5995û"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8ÎÞÓ…Ý1
-T	cpp:S5995Š"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8ÑÞÓ…Ý1
-T	cpp:S5995"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8ÓÞÓ…Ý1
-m	cpp:S5566¤"KChange this raw for-loop to a range for-loop or an "std::ranges::for_each".(«÷¤úÿÿÿÿ8Ö‚üÊÝ1
-T	cpp:S5995–"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8ÕÞÓ…Ý1
-T	cpp:S5995Ÿ"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8×ÞÓ…Ý1
-T	cpp:S5995¨"2Replace this use of "bind" with "std::bind_front".(¶íþÿÿÿÿ8ÝÞÓ…Ý1
-T	cpp:S5995®"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8áÞÓ…Ý1
-[	cpp:S1238±">Pass expensive to copy object "message" by reference to const.(°ÊÑé8œìƒ†Ý1
-m	cpp:S5566³"KChange this raw for-loop to a range for-loop or an "std::ranges::for_each".(«÷¤úÿÿÿÿ8á‚üÊÝ1
-T	cpp:S5995·"2Replace this use of "bind" with "std::bind_front".(¶íþÿÿÿÿ8ä‚üÊÝ1
-T	cpp:S5995¾"2Replace this use of "bind" with "std::bind_front".(Ë‚ŒÀþÿÿÿÿ8å‚üÊÝ1
-K	cpp:S5817Â")This function should be declared "const".(•ì¨½ýÿÿÿÿ8„¯ªËÝ1
-F	cpp:S5817É")This function should be declared "const".(ÿæÔê8‘¯ªËÝ1
-[	cpp:S1238É">Pass expensive to copy object "message" by reference to const.(ÿæÔê8ç‚üÊÝ1
-\	cpp:S5025é":Rewrite the code so that you no longer need this "delete".(õäÿÜÿÿÿÿÿ8åÞÓ…Ý1
+J	cpp:S5817S")This function should be declared "const".(¾—Šœþÿÿÿÿ8éž¿ÓÞ1
+J	cpp:S5817W")This function should be declared "const".(ÀŸ¼¼ýÿÿÿÿ8ëž¿ÓÞ1
+‚cpp:S995W"bMake the type of this parameter a reference-to-const. The current type of "id" is "std::string &".(ÀŸ¼¼ýÿÿÿÿ8ÅÓ×ÒÞ1
+k	cpp:S5566Y"OReplace this range for-loop by "std::ranges::all_of" or "std::ranges::none_of".(–ŒðŠ8ÅÓ×ÒÞ1
+E	cpp:S5817a")This function should be declared "const".(â¨ñÑ8íž¿ÓÞ1
+M	cpp:S1066e"1Merge this "if" statement with the enclosing one.(”µÆ…8ÏÔ×ÒÞ1
