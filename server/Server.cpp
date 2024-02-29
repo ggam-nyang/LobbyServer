@@ -56,7 +56,7 @@ void Server::openAcceptor() {
 }
 
 void Server::startAccept() {
-  Session::pointer session = Session::create(io_context_);
+  Session::pointer session = Session::create(io_context_, this);
 
   acceptor_.async_accept(
       session->socket_,

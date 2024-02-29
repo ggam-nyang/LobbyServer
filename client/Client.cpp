@@ -70,7 +70,7 @@ void Client::Send() {
 
   sock.async_write_some(
       asio::buffer(temp->encode()),
-      [this](const system::error_code& ec, size_t ) { SendHandle(ec); });
+      [this](const system::error_code& ec, size_t) { SendHandle(ec); });
 }
 
 void Client::Receive() {
@@ -78,10 +78,6 @@ void Client::Receive() {
                        [this](const system::error_code& ec, size_t size) {
                          ReceiveHandle(ec, size);
                        });
-
-  readBuffer = buffer.data();
-  ProtocolPtr temp = Protocol::create(readBuffer);
-  cout << temp->getBody() << endl;
 }
 
 void Client::SendHandle(const system::error_code& ec) {
@@ -108,10 +104,11 @@ void Client::ReceiveHandle(const system::error_code& ec, size_t size) {
   }
 
   buffer[size] = '\0';
-  readBuffer = buffer.data();
+  readBuffer = std::string(buffer.begin(), buffer.begin() + size);
+  ProtocolPtr temp = Protocol::create(readBuffer);
 
   lock.lock();
-  cout << readBuffer << endl;
+  cout << temp->getBody() << endl;
   lock.unlock();
 
   Receive();

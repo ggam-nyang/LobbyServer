@@ -21,32 +21,34 @@ std::unique_ptr<Protocol> Protocol::create(const std::string& data) {
 }
 
 bool Protocol::decode(const std::string& data) {
+  // 데이터 길이가 헤더 크기보다 작으면 에러
   if (data.size() < HEADER_SIZE) {
     return false;
   }
 
+  // 헤더 추출
   std::memcpy(&header_, data.data(), HEADER_SIZE);
 
-  if (header_.body_size > data.size() - HEADER_SIZE) {
+  // 유효성 검사
+  if (header_.type == ProtocolType::UNKNOWN) {
     return false;
   }
 
-  // 바디 할당 및 복사
+  // 바디 추출
   body_.resize(header_.body_size);
-  std::memcpy(body_.data(), data.data() + HEADER_SIZE, header_.body_size);
+  std::memcpy(&body_[0], data.data() + HEADER_SIZE, header_.body_size);
 
   return true;
 }
 
 std::string Protocol::encode() const {
-  std::string data;
-  data.resize(HEADER_SIZE + header_.body_size);
-  std::fill(data.begin(), data.end(), ' ');
+  // 헤더와 바디를 하나의 문자열로 결합
+  std::string encoded_data;
+  encoded_data.resize(HEADER_SIZE + body_.size());
+  std::memcpy(&encoded_data[0], &header_, HEADER_SIZE);
+  std::memcpy(&encoded_data[HEADER_SIZE], body_.data(), body_.size());
 
-  std::memcpy(data.data(), &header_, HEADER_SIZE);
-  std::memcpy(data.data() + HEADER_SIZE, body_.data(), header_.body_size);
-
-  return data;
+  return encoded_data;
 }
 
 std::string toString(ProtocolType type) {

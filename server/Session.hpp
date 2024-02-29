@@ -19,7 +19,7 @@ class Session : public std::enable_shared_from_this<Session> {
   using pointer = std::shared_ptr<Session>;
 
   boost::asio::ip::tcp::socket socket_;
-  Server* server;
+  Server* server_;
   string id;
   string name;
   string writeBuffer;
@@ -27,10 +27,10 @@ class Session : public std::enable_shared_from_this<Session> {
   std::array<char, 80> buffer;
   int room_no = -1;  // FIXME: room class로 변경
 
-  static pointer create(boost::asio::io_context& io_context);
+  static pointer create(boost::asio::io_context& io_context, Server* server);
 
   // FIXME: private으로 하고 싶은데, 그러면 create에서 접근이 안됨
-  explicit Session(boost::asio::io_context& io_context);
+  explicit Session(boost::asio::io_context& io_context, Server* server);
 
   void read();
   void write(ProtocolPtr& protocolPtr);

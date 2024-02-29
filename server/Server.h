@@ -21,7 +21,7 @@ class Server {
     shared_ptr<asio::io_service ::work> work_;
     asio::ip::tcp::endpoint endpoint_;
     asio::ip::tcp::acceptor acceptor_;
-    std::vector<Session::pointer> sessions_;
+    std::vector<Session::pointer> sessions_{};
     boost::thread_group threadGroup_;
     boost::mutex lock_;
     std::vector<int> existingRooms_;

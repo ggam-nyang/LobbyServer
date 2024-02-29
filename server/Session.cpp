@@ -5,11 +5,11 @@
 #include "Session.hpp"
 #include "Server.h"
 
-Session::pointer Session::create(boost::asio::io_context& io_context) {
-  return std::make_shared<Session>(io_context);
+Session::pointer Session::create(boost::asio::io_context& io_context, Server* server) {
+  return std::make_shared<Session>(io_context, server);
 }
 
-Session::Session(boost::asio::io_context& io_context) : socket_(io_context) {}
+Session::Session(boost::asio::io_context& io_context, Server* server) : socket_(io_context), server_(server) {}
 
 void Session::read() {
   boost::system::error_code ec;
@@ -19,7 +19,7 @@ void Session::read() {
   if (ec) {
     std::cout << "[" << boost::this_thread::get_id()
               << "] read failed: " << ec.message() << std::endl;
-    server->closeSession(shared_from_this());
+    server_->closeSession(shared_from_this());
     return;
   }
 
@@ -31,7 +31,7 @@ void Session::read() {
   }
 
   buffer[size] = '\0';
-  readBuffer = buffer.data();
+  readBuffer = string(buffer.begin(), buffer.begin() + size);
   ProtocolPtr protocol = Protocol::create(readBuffer);
 
   protocolManage(protocol);
@@ -78,11 +78,11 @@ void Session::onWrite(const boost::system::error_code& ec) {
 }
 
 void Session::writeAll(ProtocolPtr& protocolPtr, bool isExceptMe) {
-  server->writeAll(protocolPtr, shared_from_this(), isExceptMe);
+  server_->writeAll(protocolPtr, shared_from_this(), isExceptMe);
 }
 
 void Session::setId(std::string& body) {
-  if (server->isValidId(body)) {
+  if (server_->isValidId(body)) {
     id = body;
     writeBuffer = "set [" + id + "] success!";
   } else {
