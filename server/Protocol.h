@@ -35,7 +35,7 @@ class Protocol {
 
   const Header& getHeader() const noexcept { return header_; }
 
-  std::string& getBody() noexcept { return body_; }
+  std::string& getBody() { return body_; }
 
  private:
   Header header_{};

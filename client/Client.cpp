@@ -12,7 +12,7 @@ Client::Client(std::string ip_address, unsigned short port_num)
 
 void Client::Start() {
   for (int i = 0; i < 3; i++)
-    thread_group.create_thread(bind(&Client::WorkerThread, this));
+    thread_group.create_thread([this]() { WorkerThread(); });
 
   // thread 잘 만들어질때까지 잠시 기다리는 부분
   this_thread::sleep_for(chrono::milliseconds(100));
@@ -25,27 +25,27 @@ void Client::Start() {
 
 void Client::WorkerThread() {
   lock.lock();
-  cout << "[" << boost::this_thread::get_id() << "]"
+  cout << "[" << std::this_thread::get_id() << "]"
        << " Thread start" << endl;
   lock.unlock();
 
   ios.run();
 
-  lock.lock();
-  cout << "[" << boost::this_thread::get_id() << "]"
+   lock.lock();
+  cout << "[" << std::this_thread::get_id() << "]"
        << " Thread End" << endl;
   lock.unlock();
 }
 
 void Client::TryConnect() {
-  cout << "[" << boost::this_thread::get_id() << "]"
+  cout << "[" << std::this_thread::get_id() << "]"
        << " TryConnect" << endl;
 
   sock.async_connect(ep, boost::bind(&Client::OnConnect, this, _1));
 }
 
 void Client::OnConnect(const system::error_code& ec) {
-  cout << "[" << boost::this_thread::get_id() << "]"
+  cout << "[" << std::this_thread::get_id() << "]"
        << " OnConnect" << endl;
   if (ec) {
     cout << "connect failed: " << ec.message() << endl;
@@ -53,8 +53,8 @@ void Client::OnConnect(const system::error_code& ec) {
     return;
   }
 
-  ios.post(bind(&Client::Send, this));
-  ios.post(bind(&Client::Receive, this));
+  ios.post([this]() { Send(); });
+  ios.post([this]() { Receive(); });
 }
 
 void Client::Send() {
@@ -107,6 +107,8 @@ void Client::ReceiveHandle(const system::error_code& ec, size_t size) {
   readBuffer = std::string(buffer.begin(), buffer.begin() + size);
   ProtocolPtr temp = Protocol::create(readBuffer);
 
+//  std::lock_guard<std::mutex> lock_guard(mutex_);
+//  cout << temp->getBody() << endl;
   lock.lock();
   cout << temp->getBody() << endl;
   lock.unlock();

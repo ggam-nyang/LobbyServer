@@ -25,6 +25,7 @@ class Client {
     std::string readBuffer;
     std::array<char, 80> buffer;
     boost::mutex lock;
+    std::mutex mutex_;
     bool isSetId = false;
 
 public:
