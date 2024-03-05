@@ -35,7 +35,7 @@ void Session::read() {
   ProtocolPtr protocol = Protocol::create(readBuffer);
 
   protocolManage(protocol);
-  std::cout << "[" << boost::this_thread::get_id() << "] " << readBuffer
+  std::cout << "[" << boost::this_thread::get_id() << "] " << protocol->getBody()
             << std::endl;
 
   read();
@@ -43,7 +43,7 @@ void Session::read() {
 
 void Session::protocolManage(ProtocolPtr& protocolPtr) {
   Protocol::Header header = protocolPtr->getHeader();
-  string body = protocolPtr->getBody().data();
+  string body = protocolPtr->getBody();
 
   switch (header.type) {
     using enum ProtocolType;
@@ -91,6 +91,7 @@ void Session::setId(std::string& body) {
 
   ProtocolPtr alert = Protocol::create(ProtocolType::ALERT, writeBuffer);
   write(alert);
+  this_thread::sleep_for(chrono::milliseconds(100));
 
   writeBuffer = "[" + id + "] 님이 로비에 입장하였습니다";
   ProtocolPtr alertAll = Protocol::create(ProtocolType::ALERT, writeBuffer);

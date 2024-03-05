@@ -5,43 +5,44 @@
 #include "Client.h"
 #include "../server/Protocol.h"
 
-Client::Client(std::string ip_address, unsigned short port_num)
-    : ep(asio::ip::address::from_string(ip_address), port_num),
-      sock(ios, ep.protocol()),
-      work(new asio::io_service::work(ios)) {}
+Client::
+    Client(std::string ip_address, unsigned short port_num)
+    : endpoint_(asio::ip::address::from_string(ip_address), port_num),
+      sock(io_context_, endpoint_.protocol()),
+      work_(new asio::io_service::work(io_context_)) {}
 
 void Client::Start() {
   for (int i = 0; i < 3; i++)
-    thread_group.create_thread([this]() { WorkerThread(); });
+    thread_group_.create_thread([this]() { WorkerThread(); });
 
   // thread 잘 만들어질때까지 잠시 기다리는 부분
   this_thread::sleep_for(chrono::milliseconds(100));
 
-  //    ios.post(bind(&Client::TryConnect, this));
-  ios.post([this]() { TryConnect(); });
+  //    io_context_.post(bind(&Client::TryConnect, this));
+  io_context_.post([this]() { TryConnect(); });
 
-  thread_group.join_all();
+  thread_group_.join_all();
 }
 
 void Client::WorkerThread() {
-  lock.lock();
+  lock_.lock();
   cout << "[" << std::this_thread::get_id() << "]"
        << " Thread start" << endl;
-  lock.unlock();
+  lock_.unlock();
 
-  ios.run();
+  io_context_.run();
 
-   lock.lock();
+  lock_.lock();
   cout << "[" << std::this_thread::get_id() << "]"
        << " Thread End" << endl;
-  lock.unlock();
+  lock_.unlock();
 }
 
 void Client::TryConnect() {
   cout << "[" << std::this_thread::get_id() << "]"
        << " TryConnect" << endl;
 
-  sock.async_connect(ep, boost::bind(&Client::OnConnect, this, _1));
+  sock.async_connect(endpoint_, boost::bind(&Client::OnConnect, this, _1));
 }
 
 void Client::OnConnect(const system::error_code& ec) {
@@ -53,19 +54,20 @@ void Client::OnConnect(const system::error_code& ec) {
     return;
   }
 
-  ios.post([this]() { Send(); });
-  ios.post([this]() { Receive(); });
+  io_context_.post([this]() { Send(); });
+  io_context_.post([this]() { Receive(); });
 }
 
 void Client::Send() {
   ProtocolPtr temp;
-  getline(std::cin, writeBuffer);
-
-  if (writeBuffer[0] == ':') {
-    temp = Protocol::create(ProtocolType::SET_ID, writeBuffer);
+  if (!isSetId) {
+    cout << "닉네임을 입력해주세요." <<endl;
     isSetId = true;
+    getline(std::cin, writeBuffer_);
+    temp = Protocol::create(ProtocolType::SET_ID, writeBuffer_);
   } else {
-    temp = Protocol::create(ProtocolType::CHAT, writeBuffer);
+    getline(std::cin, writeBuffer_);
+    temp = Protocol::create(ProtocolType::CHAT, writeBuffer_);
   }
 
   sock.async_write_some(
@@ -74,7 +76,7 @@ void Client::Send() {
 }
 
 void Client::Receive() {
-  sock.async_read_some(asio::buffer(buffer, buffer.size()),
+  sock.async_read_some(asio::buffer(buffer_, buffer_.size()),
                        [this](const system::error_code& ec, size_t size) {
                          ReceiveHandle(ec, size);
                        });
@@ -103,20 +105,20 @@ void Client::ReceiveHandle(const system::error_code& ec, size_t size) {
     return;
   }
 
-  buffer[size] = '\0';
-  readBuffer = std::string(buffer.begin(), buffer.begin() + size);
-  ProtocolPtr temp = Protocol::create(readBuffer);
+  buffer_[size] = '\0';
+  readBuffer_ = std::string(buffer_.begin(), buffer_.begin() + size);
+  ProtocolPtr temp = Protocol::create(readBuffer_);
 
 //  std::lock_guard<std::mutex> lock_guard(mutex_);
 //  cout << temp->getBody() << endl;
-  lock.lock();
+  lock_.lock();
   cout << temp->getBody() << endl;
-  lock.unlock();
+  lock_.unlock();
 
   Receive();
 }
 
 void Client::StopAll() {
   sock.close();
-  work.reset();
+  work_.reset();
 }

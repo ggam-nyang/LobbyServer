@@ -16,17 +16,17 @@ using std::cout;
 using std::endl;
 
 class Client {
-    asio::ip::tcp::endpoint ep;
-    asio::io_service ios;
+    asio::ip::tcp::endpoint endpoint_;
+    asio::io_context io_context_;
     asio::ip::tcp::socket sock;
-    shared_ptr<boost::asio::io_service::work> work;
-    thread_group thread_group;
-    std::string writeBuffer;
-    std::string readBuffer;
-    std::array<char, 80> buffer;
-    boost::mutex lock;
-    std::mutex mutex_;
+    shared_ptr<boost::asio::io_service::work> work_;
+    thread_group thread_group_;
+    std::string writeBuffer_;
+    std::string readBuffer_;
+    std::array<char, 80> buffer_;
+    std::mutex lock_;
     bool isSetId = false;
+    int id;
 
 public:
     Client(std::string ip_address, unsigned short port_num);
