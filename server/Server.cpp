@@ -109,8 +109,7 @@ void Server::writeAll(ProtocolPtr& protocolPtr, Session::pointer sender,
 void Server::closeSession(Session::pointer session) {
   session->close();
 
-  ProtocolPtr temp = Protocol::create(
-      ProtocolType::ALERT, "[" + session->id + "]" + "님이 종료하였습니다");
+  ProtocolPtr temp = Protocol::create(ProtocolType::ALERT, session->id + " exit");
   writeAll(temp, session, true);
 
   for (int i = 0; i < sessions_.size(); i++) {

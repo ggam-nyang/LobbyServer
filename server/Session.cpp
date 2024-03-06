@@ -64,9 +64,10 @@ void Session::protocolManage(ProtocolPtr& protocolPtr) {
 }
 
 void Session::write(ProtocolPtr& protocolPtr) {
+  // 이 부분도 동일합니다. protocolPtr을 shared_ptr로 바꾸고, 이에 대한 capture를 통해 life-cycle을 확보해주셔야 합니다
   socket_.async_write_some(
       boost::asio::buffer(protocolPtr->encode()),
-      [this](const boost::system::error_code& ec, size_t _) { onWrite(ec); });
+      [this, protocolPtr](const boost::system::error_code& ec, size_t _) { onWrite(ec); });
 }
 
 void Session::onWrite(const boost::system::error_code& ec) {
@@ -82,6 +83,7 @@ void Session::writeAll(ProtocolPtr& protocolPtr, bool isExceptMe) {
 }
 
 void Session::setId(std::string& body) {
+  std::string writeBuffer;
   if (server_->isValidId(body)) {
     id = body;
     writeBuffer = "set [" + id + "] success!";
@@ -91,21 +93,25 @@ void Session::setId(std::string& body) {
 
   ProtocolPtr alert = Protocol::create(ProtocolType::ALERT, writeBuffer);
   write(alert);
-  this_thread::sleep_for(chrono::milliseconds(100));
 
-  writeBuffer = "[" + id + "] 님이 로비에 입장하였습니다";
-  ProtocolPtr alertAll = Protocol::create(ProtocolType::ALERT, writeBuffer);
+  // 주석 처리 했습니다
+  //this_thread::sleep_for(chrono::milliseconds(100));
+
+
+  std::string enterWriteBuffer = "[" + id + "] enter";
+  ProtocolPtr alertAll =
+      Protocol::create(ProtocolType::ALERT, enterWriteBuffer);
   writeAll(alertAll, false);
 }
 
 void Session::chat(std::string& body) {
-    writeBuffer = "[" + id + "] : " + body;
+    auto writeBuffer = "[" + id + "] : " + body;
     ProtocolPtr chat = Protocol::create(ProtocolType::CHAT, writeBuffer);
     writeAll(chat);
 }
 
 void Session::alert(std::string& body) {
-    writeBuffer = body;
+  auto writeBuffer = body;
     ProtocolPtr alert = Protocol::create(ProtocolType::ALERT, writeBuffer);
     write(alert);
 }

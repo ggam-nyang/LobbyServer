@@ -18,7 +18,7 @@ void Client::Start() {
   // thread 잘 만들어질때까지 잠시 기다리는 부분
   this_thread::sleep_for(chrono::milliseconds(100));
 
-  //    io_context_.post(bind(&Client::TryConnect, this));
+  // io_context_.post(bind(&Client::TryConnect, this));
   io_context_.post([this]() { TryConnect(); });
 
   thread_group_.join_all();
@@ -61,7 +61,7 @@ void Client::OnConnect(const system::error_code& ec) {
 void Client::Send() {
   ProtocolPtr temp;
   if (!isSetId) {
-    cout << "닉네임을 입력해주세요." <<endl;
+    cout << "nickname." <<endl;
     isSetId = true;
     getline(std::cin, writeBuffer_);
     temp = Protocol::create(ProtocolType::SET_ID, writeBuffer_);
@@ -70,19 +70,22 @@ void Client::Send() {
     temp = Protocol::create(ProtocolType::CHAT, writeBuffer_);
   }
 
+  // ProtocolPtr을 캡쳐해, async_write_some이 완료되고, SendHandle이 처리 될때까지 life-cycle을 유지하도록 했습니다
   sock.async_write_some(
       asio::buffer(temp->encode()),
-      [this](const system::error_code& ec, size_t) { SendHandle(ec); });
+      [this, temp](const system::error_code& ec, size_t) { SendHandle(ec, temp); });
 }
 
 void Client::Receive() {
+  cout << "Receive. ThreadId:" << std::this_thread::get_id() << endl;
+
   sock.async_read_some(asio::buffer(buffer_, buffer_.size()),
                        [this](const system::error_code& ec, size_t size) {
                          ReceiveHandle(ec, size);
                        });
 }
 
-void Client::SendHandle(const system::error_code& ec) {
+void Client::SendHandle(const system::error_code& ec, const ProtocolPtr& protocol) {
   if (ec) {
     cout << "async_write_some error: " << ec.message() << endl;
     StopAll();
@@ -106,14 +109,12 @@ void Client::ReceiveHandle(const system::error_code& ec, size_t size) {
   }
 
   buffer_[size] = '\0';
-  readBuffer_ = std::string(buffer_.begin(), buffer_.begin() + size);
-  ProtocolPtr temp = Protocol::create(readBuffer_);
+  readBuffer_ = std::string(buffer_.data(), size);
 
-//  std::lock_guard<std::mutex> lock_guard(mutex_);
-//  cout << temp->getBody() << endl;
-  lock_.lock();
-  cout << temp->getBody() << endl;
-  lock_.unlock();
+  ProtocolPtr protocol = Protocol::create(readBuffer_);
+
+  // lock 자체를 제거 했습니다
+  cout << protocol->getBody() << endl;
 
   Receive();
 }
