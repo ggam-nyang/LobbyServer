@@ -10,13 +10,13 @@
 Protocol::Protocol(const ProtocolType type, const std::string& body)
     : header_{type, static_cast<uint32_t>(body.size())}, body_(body) {}
 
-std::unique_ptr<Protocol> Protocol::create(ProtocolType type,
+std::shared_ptr<Protocol> Protocol::create(ProtocolType type,
                                            const std::string& body) {
-  return std::make_unique<Protocol>(type, body);
+  return std::make_shared<Protocol>(type, body);
 }
 
-std::unique_ptr<Protocol> Protocol::create(const std::string& data) {
-  auto protocol = std::make_unique<Protocol>();
+std::shared_ptr<Protocol> Protocol::create(const std::string& data) {
+  auto protocol = std::make_shared<Protocol>();
   protocol->decode(data);
 
   return protocol;
@@ -43,14 +43,13 @@ bool Protocol::decode(const std::string& data) {
   return true;
 }
 
-std::string Protocol::encode() const {
+std::string& Protocol::encode() {
   // 헤더와 바디를 하나의 문자열로 결합
-  std::string encoded_data;
-  encoded_data.resize(HEADER_SIZE + body_.size());
-  std::memcpy(&encoded_data[0], &header_, HEADER_SIZE);
-  std::memcpy(&encoded_data[HEADER_SIZE], body_.data(), body_.size());
+  encoded_data_.resize(HEADER_SIZE + body_.size());
+  std::memcpy(&encoded_data_[0], &header_, HEADER_SIZE);
+  std::memcpy(&encoded_data_[HEADER_SIZE], body_.data(), body_.size());
 
-  return encoded_data;
+  return encoded_data_;
 }
 
 std::string toString(ProtocolType type) {

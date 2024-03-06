@@ -54,3 +54,13 @@ include/*
 lib/*
 bin/*
 test/test_runner
+
+# Visual Studio for windows
+.vs
+x64
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.filters
+*.user

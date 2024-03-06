@@ -22,7 +22,6 @@ class Session : public std::enable_shared_from_this<Session> {
   Server* server_;
   string id;
   string name;
-  string writeBuffer;
   string readBuffer;
   std::array<char, 80> buffer;
   int room_no = -1;  // FIXME: room class로 변경

@@ -10,6 +10,8 @@
 #include "boost/thread.hpp"
 #include <iostream>
 
+#include "../server/Protocol.h"
+
 using namespace boost;
 using boost::asio::ip::tcp;
 using std::cout;
@@ -44,7 +46,7 @@ private:
 
     void Receive();
 
-    void SendHandle(const system::error_code &ec);
+    void SendHandle(const system::error_code& ec, const ProtocolPtr& protocol);
 
     void ReceiveHandle(const system::error_code &ec, size_t size);
 
