@@ -1,7 +1,0 @@
-
-J	cpp:S5817S")This function should be declared "const".(¾—Šœþÿÿÿÿ8éž¿ÓÞ1
-J	cpp:S5817W")This function should be declared "const".(ÀŸ¼¼ýÿÿÿÿ8ëž¿ÓÞ1
-‚cpp:S995W"bMake the type of this parameter a reference-to-const. The current type of "id" is "std::string &".(ÀŸ¼¼ýÿÿÿÿ8ÅÓ×ÒÞ1
-k	cpp:S5566Y"OReplace this range for-loop by "std::ranges::all_of" or "std::ranges::none_of".(–ŒðŠ8ÅÓ×ÒÞ1
-E	cpp:S5817a")This function should be declared "const".(â¨ñÑ8íž¿ÓÞ1
-M	cpp:S1066e"1Merge this "if" statement with the enclosing one.(”µÆ…8ÏÔ×ÒÞ1

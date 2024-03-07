@@ -44,7 +44,7 @@ include/divisible/*
 
 
 ## Local
-
+.idea
 .idea/*.xml
 .idea/*
 

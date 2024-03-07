@@ -1,10 +1,0 @@
-
-b	cpp:S1238	"APass expensive to copy object "ip_address" by reference to const.(ָ®üÿÿÿÿ8¶רדחא1
-T	cpp:S5506"8Use the RAII idiom instead of calling lock() explicitly.(ַ»µן8¾רדחא1
-[	cpp:S5506":Use the RAII idiom instead of calling unlock() explicitly.(Ú¼׀ֹüÿÿÿÿ8¾רדחא1
-T	cpp:S5506#"8Use the RAII idiom instead of calling lock() explicitly.(ַ»µן8¾רדחא1
-[	cpp:S5506&":Use the RAII idiom instead of calling unlock() explicitly.(Ú¼׀ֹüÿÿÿÿ8¾רדחא1
-L	cpp:S5995-"2Replace this use of "bind" with "std::bind_front".(ו׳—זüÿÿÿÿ
-T	cpp:S5506r"8Use the RAII idiom instead of calling lock() explicitly.(ַ»µן8ׁרדחא1
-[	cpp:S5506t":Use the RAII idiom instead of calling unlock() explicitly.(Ú¼׀ֹüÿÿÿÿ8ׁרדחא1
->cpp:S125p"Remove the commented out code.(ֿסע–‏ÿÿÿÿ8£זףָא1
