@@ -1,5 +1,3 @@
-#pragma pack(push, 1)
-
 //
 // Created by ggam-nyang on 2/27/24.
 //
