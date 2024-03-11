@@ -21,16 +21,20 @@ add_executable(LobbyServer
         server/Server.cpp
         server/Server.h
         server/Session.cpp
-        server/Protocol.cpp
-        server/Protocol.h
+        Protocol/Protocol.cpp
+        Protocol/Protocol.h
+        server/Lobby.cpp
+        server/Lobby.hpp
+        server/Room.cpp
+        server/Room.hpp
 )
 
 add_executable(LobbyClient
         client/clientMain.cpp
         client/Client.cpp
         client/Client.h
-        server/Protocol.cpp
-        server/Protocol.h
+        Protocol/Protocol.cpp
+        Protocol/Protocol.h
 )
 
 target_link_libraries(LobbyServer ${Boost_LIBRARIES})

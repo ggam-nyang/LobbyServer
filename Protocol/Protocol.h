@@ -11,7 +11,7 @@
 #include <vector>
 #include <iostream>
 
-enum class ProtocolType : uint32_t { SET_ID, CHAT, ALERT, UNKNOWN };
+enum class ProtocolType : uint32_t { SET_ID, CHAT, ALERT, CREATE_ROOM, ENTER_ROOM, ROOM_LIST, UNKNOWN };
 
 class Protocol {
  public:
@@ -26,6 +26,7 @@ class Protocol {
   static std::shared_ptr<Protocol> create(ProtocolType type,
                                           const std::string& body);
   static std::shared_ptr<Protocol> create(const std::string& data);
+  static std::shared_ptr<Protocol> from(const std::string& input);
 
   Protocol() = default;
   Protocol(const ProtocolType type, const std::string& body);
@@ -45,11 +46,11 @@ class Protocol {
 
   std::string body_;
 
-  // ÀÎÄÚµå¿¡¼­ »ç¿ëÇÏ´Â std::string¿¡ ¸Þ¸ð¸® ¿µ¿ªÀ» ProtocolÀÇ ¶óÀÌÇÁ »çÀÌÅ¬°ú °°ÀÌ À¯ÁöÇØÁÖ±â À§ÇØ¼­, ¸â¹ö º¯¼ö·Î º¯°æÇÏ°í ÀÌ¸¦ ¹ÝÈ¯ÇÏ°Ô Çß½À´Ï´Ù
+  // ï¿½ï¿½ï¿½Úµå¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ std::stringï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Protocolï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½È¯ï¿½Ï°ï¿½ ï¿½ß½ï¿½ï¿½Ï´ï¿½
   std::string encoded_data_;
 };
 
-// shared_ptr·Î º¯È¯ÇÑ ÀÌÀ¯´Â life-cycle ¶§¹®ÀÔ´Ï´Ù
+// shared_ptrï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ life-cycle ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½
 using ProtocolPtr = std::shared_ptr<Protocol>;
 
 std::string toString(ProtocolType type);

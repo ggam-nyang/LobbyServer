@@ -3,7 +3,7 @@
 //
 
 #include "Client.h"
-#include "../server/Protocol.h"
+#include "../Protocol/Protocol.h"
 
 Client::
     Client(std::string ip_address, unsigned short port_num)
@@ -61,13 +61,13 @@ void Client::OnConnect(const system::error_code& ec) {
 void Client::Send() {
   ProtocolPtr temp;
   if (!isSetId) {
-    cout << "nickname." <<endl;
+    cout << "set nickname please." << endl;
     isSetId = true;
     getline(std::cin, writeBuffer_);
     temp = Protocol::create(ProtocolType::SET_ID, writeBuffer_);
   } else {
     getline(std::cin, writeBuffer_);
-    temp = Protocol::create(ProtocolType::CHAT, writeBuffer_);
+    temp = Protocol::from(writeBuffer_);
   }
 
   // ProtocolPtr을 캡쳐해, async_write_some이 완료되고, SendHandle이 처리 될때까지 life-cycle을 유지하도록 했습니다

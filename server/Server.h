@@ -7,7 +7,7 @@
 #include <boost/bind.hpp>
 #include <string>
 #include <vector>
-#include <boost/thread/mutex.hpp>
+#include <unordered_map>
 #include <boost/shared_ptr.hpp>
 #include "Session.hpp"
 
@@ -16,6 +16,8 @@ using std::cout;
 using std::endl;
 using std::string;
 
+class Lobby;
+
 class Server {
     asio::io_service io_context_;
     shared_ptr<asio::io_service ::work> work_;
@@ -23,13 +25,10 @@ class Server {
     asio::ip::tcp::acceptor acceptor_;
     std::vector<Session::pointer> sessions_{};
     boost::thread_group threadGroup_;
-    boost::mutex lock_;
+    std::mutex lock_;
+    std::unordered_map<int, std::shared_ptr<Lobby>> lobbies_;
     std::vector<int> existingRooms_;
     const int THREAD_SIZE = 4;
-
-    enum Code {
-        INVALID, SET_ID, CREATE_ROOM, SET_ROOM, WHISPER_TO, KICK_ID
-    };
 
     friend class Session;
 public:

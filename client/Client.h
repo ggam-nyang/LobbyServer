@@ -10,7 +10,7 @@
 #include "boost/thread.hpp"
 #include <iostream>
 
-#include "../server/Protocol.h"
+#include "../Protocol/Protocol.h"
 
 using namespace boost;
 using boost::asio::ip::tcp;

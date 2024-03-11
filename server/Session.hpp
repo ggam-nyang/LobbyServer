@@ -8,10 +8,13 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <memory>
-#include "Protocol.h"
+#include "../Protocol/Protocol.h"
 #include "boost/asio.hpp"
 
 class Server;
+class Lobby;
+class Room;
+
 using std::string;
 
 class Session : public std::enable_shared_from_this<Session> {
@@ -23,7 +26,7 @@ class Session : public std::enable_shared_from_this<Session> {
   string id;
   string name;
   string readBuffer;
-  std::array<char, 80> buffer;
+  std::array<char, 100> buffer;
   int room_no = -1;  // FIXME: room class로 변경
 
   static pointer create(boost::asio::io_context& io_context, Server* server);
@@ -40,8 +43,17 @@ class Session : public std::enable_shared_from_this<Session> {
   void setId(string& body);
   void chat(string& body);
   void alert(string& body);
+  void RoomList(string& body);
+  void CreateRoom(string& body);
+  void EnterRoom(string& body);
+
+  void EnterLobby(std::shared_ptr<Lobby> lobby);
 
   void close();
+
+ private:
+  std::shared_ptr<Lobby> lobby_;
+  std::shared_ptr<Room> room_;
 };
 
 #endif  //LOBBYSERVER_SESSION_H

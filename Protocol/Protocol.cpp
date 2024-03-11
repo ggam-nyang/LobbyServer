@@ -8,6 +8,7 @@
 Protocol::Protocol(const ProtocolType type, const std::string& body)
     : header_{type, static_cast<uint32_t>(body.size())}, body_(body) {}
 
+
 std::shared_ptr<Protocol> Protocol::create(ProtocolType type,
                                            const std::string& body) {
   return std::make_shared<Protocol>(type, body);
@@ -18,6 +19,29 @@ std::shared_ptr<Protocol> Protocol::create(const std::string& data) {
   protocol->decode(data);
 
   return protocol;
+}
+
+std::shared_ptr<Protocol> Protocol::from(const std::string& input) {
+  if (input[0] != ':')
+    return create(ProtocolType::CHAT, input);
+
+  auto index = input.find(' ', 0);
+  std::string order = input.substr(0, index);
+  std::string body = input.substr(index + 1);
+
+  if (order == ":set")
+    return create(ProtocolType::SET_ID, body);
+
+  if (order == ":create_room")
+    return create(ProtocolType::CREATE_ROOM, body);
+
+  if (order == ":room_list")
+    return create(ProtocolType::ROOM_LIST, body);
+
+  if (order == ":enter_room")
+    return create(ProtocolType::ENTER_ROOM, body);
+
+  return create(ProtocolType::UNKNOWN, "Wrong message");
 }
 
 bool Protocol::decode(const std::string& data) {
