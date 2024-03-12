@@ -61,7 +61,7 @@ void Session::protocolManage(ProtocolPtr& protocolPtr) {
       chat(body);
       break;
     case ALERT:
-      //      alert(body);
+      alert(body);
       break;
     case ENTER_ROOM:
       EnterRoom(body);
@@ -75,12 +75,11 @@ void Session::protocolManage(ProtocolPtr& protocolPtr) {
     case ENTER_LOBBY:
       EnterLobby(server_->lobbies_.begin()->second);  // FIXME: 구조 개선 필요
       break;
-
     case LEAVE_ROOM:
       LeaveRoom();
       break;
-
     default:
+      alert(body);
       break;
   }
 }
