@@ -6,12 +6,22 @@
 #define LOBBYSERVER_PROTOCOL_H
 
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
-#include <iostream>
 
-enum class ProtocolType : uint32_t { SET_ID, CHAT, ALERT, CREATE_ROOM, ENTER_ROOM, ROOM_LIST, UNKNOWN };
+enum class ProtocolType : uint32_t {
+  SET_ID,
+  CHAT,
+  ALERT,
+  ENTER_LOBBY,
+  CREATE_ROOM,
+  ENTER_ROOM,
+  LEAVE_ROOM,
+  ROOM_LIST,
+  UNKNOWN
+};
 
 class Protocol {
  public:

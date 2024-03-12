@@ -10,7 +10,7 @@ Server::Server(const string& ip_address, unsigned short port_num)
       endpoint_(asio::ip::address::from_string(ip_address), port_num),
       acceptor_(io_context_, endpoint_.protocol()) {
   const std::shared_ptr<Lobby>& lobby = Lobby::create();
-  lobbies_.insert(std::make_pair(lobby->getId(), lobby));
+  lobbies_[lobby->getId()] = lobby;
 }
 
 void Server::start() {
@@ -59,7 +59,6 @@ void Server::openAcceptor() {
 
 void Server::startAccept() {
   Session::pointer session = Session::create(io_context_, this);
-  session->EnterLobby(lobbies_.begin()->second);
 
   acceptor_.async_accept(
       session->socket_,

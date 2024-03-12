@@ -27,7 +27,6 @@ class Session : public std::enable_shared_from_this<Session> {
   string name;
   string readBuffer;
   std::array<char, 100> buffer;
-  int room_no = -1;  // FIXME: room class로 변경
 
   static pointer create(boost::asio::io_context& io_context, Server* server);
 
@@ -37,7 +36,11 @@ class Session : public std::enable_shared_from_this<Session> {
   void read();
   void write(ProtocolPtr& protocolPtr);
   void onWrite(const boost::system::error_code& ec);
-  void writeAll(ProtocolPtr& protocolPtr, bool isExceptMe = true);
+  void WriteToServer(ProtocolPtr& protocolPtr, bool isExceptMe = true);
+  void WriteToLobby(ProtocolPtr& protocolPtr, std::shared_ptr<Lobby> lobby,
+                    bool isExceptMe = true);
+  void WriteToRoom(ProtocolPtr& protocolPtr, std::shared_ptr<Room> room,
+                   bool isExceptMe = true);
 
   void protocolManage(ProtocolPtr& protocolPtr);
   void setId(string& body);
@@ -46,10 +49,13 @@ class Session : public std::enable_shared_from_this<Session> {
   void RoomList(string& body);
   void CreateRoom(string& body);
   void EnterRoom(string& body);
-
   void EnterLobby(std::shared_ptr<Lobby> lobby);
+  void LeaveRoom();
 
   void close();
+
+  void setRoom(std::shared_ptr<Room> room);
+  bool IsInRoom() const;
 
  private:
   std::shared_ptr<Lobby> lobby_;

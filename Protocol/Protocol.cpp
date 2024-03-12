@@ -41,6 +41,12 @@ std::shared_ptr<Protocol> Protocol::from(const std::string& input) {
   if (order == ":enter_room")
     return create(ProtocolType::ENTER_ROOM, body);
 
+  if (order == ":enter_lobby")
+    return create(ProtocolType::ENTER_LOBBY, body);
+
+  if (order == ":leave_room")
+    return create(ProtocolType::LEAVE_ROOM, body);
+
   return create(ProtocolType::UNKNOWN, "Wrong message");
 }
 

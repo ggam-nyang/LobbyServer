@@ -12,7 +12,7 @@
 
 class Lobby : public std::enable_shared_from_this<Lobby> {
   int id_;
-  std::list<Session::pointer> clients_;
+  std::list<Session::pointer> clients_; // FIXME: set으로 바꾸는게 좋을듯
   std::unordered_map<int, std::shared_ptr<Room>> rooms_;
 
   static const int MAX_ROOM_SIZE = 5;
@@ -29,6 +29,9 @@ class Lobby : public std::enable_shared_from_this<Lobby> {
   void EnterRoom(Session::pointer session, int room_id);
   void LeaveRoom(Session::pointer session);
   std::vector<int> getRoomList(Session::pointer session) const;
+  std::shared_ptr<Room> getRoom(int room_id) const;
+
+  void WriteAll(ProtocolPtr& protocolPtr, Session::pointer session, bool isExceptMe = true);
 };
 
 #endif  //LOBBYSERVER_LOBBY_HPP

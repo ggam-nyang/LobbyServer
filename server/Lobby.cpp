@@ -6,10 +6,7 @@
 
 int Lobby::ID_COUNTER = 1;
 
-Lobby::Lobby(int id) : id_(id) {
-  auto room = Room::create(this);
-  rooms_.insert(std::make_pair(1, room));
-}
+Lobby::Lobby(int id) : id_(id) {}
 
 std::shared_ptr<Lobby> Lobby::create() {
   return std::make_shared<Lobby>(++ID_COUNTER);
@@ -18,11 +15,10 @@ std::shared_ptr<Lobby> Lobby::create() {
 void Lobby::Enter(Session::pointer session) {
   clients_.push_back(session);
 
-  string message = session->id + " Enter lobby";
+  string message = "[ " + session->id + " ] " + " Enter Lobby";
   auto protocol = Protocol::create(ProtocolType::ALERT, message);
-  for (const auto& client : clients_) {
-    client->write(protocol);
-  }
+
+  WriteAll(protocol, session, false);
 }
 
 std::vector<int> Lobby::getRoomList(Session::pointer session) const {
@@ -32,4 +28,52 @@ std::vector<int> Lobby::getRoomList(Session::pointer session) const {
   }
 
   return room_list;
+}
+
+std::shared_ptr<Room> Lobby::getRoom(int room_id) const {
+
+
+  return rooms_.at(room_id);
+}
+
+
+void Lobby::WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
+                     bool isExceptMe) {
+  for (const auto& client : clients_) {
+    if (client->IsInRoom()) {
+      continue;
+    }
+    if ((isExceptMe && client == session)) {
+      continue;
+    }
+    client->write(protocolPtr);
+  }
+}
+
+void Lobby::CreateRoom(Session::pointer session) {
+    if (rooms_.size() >= MAX_ROOM_SIZE) {
+        string message = "Room is full";
+        auto protocol = Protocol::create(ProtocolType::ALERT, message);
+        session->write(protocol);
+        return;
+    }
+
+    auto room = Room::create(this);
+    rooms_[room->id_] = room;
+
+    string message = "[ " + session->id + " ] " + " Create Room id: " + std::to_string(room->id_);
+    auto protocol = Protocol::create(ProtocolType::ALERT, message);
+
+    WriteAll(protocol, session, false);
+}
+
+void Lobby::EnterRoom(Session::pointer session, int room_id) {
+    if (!rooms_.contains(room_id)) {
+        string message = "Room id: " + std::to_string(room_id) + " is not exist";
+        auto protocol = Protocol::create(ProtocolType::ALERT, message);
+        return session->write(protocol);
+    }
+
+    auto room = rooms_.at(room_id);
+    room->Enter(session);
 }
