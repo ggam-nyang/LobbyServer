@@ -36,6 +36,6 @@ $ cmake --build build
 
 
 ## 시퀀스 다이어그램
-![스크린샷 2024-03-12 21.04.59.png](..%2F..%2F..%2FDesktop%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-03-12%2021.04.59.png)
-![스크린샷 2024-03-12 21.05.02.png](..%2F..%2F..%2FDesktop%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-03-12%2021.05.02.png)
-![스크린샷 2024-03-12 21.05.08.png](..%2F..%2F..%2FDesktop%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202024-03-12%2021.05.08.png)
+![Sequence1](assets/sequence1.png)
+![Sequence2](assets/sequence2.png)
+![Sequence3](assets/sequence3.png)
