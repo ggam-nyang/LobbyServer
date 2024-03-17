@@ -23,8 +23,8 @@ class Session : public std::enable_shared_from_this<Session> {
 
   boost::asio::ip::tcp::socket socket_;
   Server* server_;
-  string id;
-  string name;
+  int id_;
+  string name_;
   string readBuffer;
   std::array<char, 100> buffer;
 

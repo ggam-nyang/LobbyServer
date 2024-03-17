@@ -117,11 +117,11 @@ void Session::WriteToRoom(ProtocolPtr& protocolPtr, std::shared_ptr<Room> room,
 
 void Session::setId(std::string& body) {
   std::string writeBuffer;
-  if (server_->isValidId(body)) {
-    id = body;
-    writeBuffer = "set [" + id + "] success!";
+  if (server_->isValidName(body)) {
+    name_ = body;
+    writeBuffer = "set [" + name_ + "] success!";
   } else {
-    writeBuffer = body + "는 이미 사용중인 id 입니다.";
+    writeBuffer = body + "는 이미 사용중인 name_ 입니다.";
   }
 
   ProtocolPtr alert = Protocol::create(ProtocolType::ALERT, writeBuffer);
@@ -129,7 +129,7 @@ void Session::setId(std::string& body) {
 }
 
 void Session::chat(std::string& body) {
-  auto writeBuffer = "[" + id + "] : " + body;
+  auto writeBuffer = "[" + name_ + "] : " + body;
   ProtocolPtr chat = Protocol::create(ProtocolType::CHAT, writeBuffer);
 
   if (room_ == nullptr) {

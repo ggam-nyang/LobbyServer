@@ -35,7 +35,7 @@ void Room::Enter(Session::pointer session) {
 
   clients_.push_back(session);
   session->setRoom(shared_from_this());
-  string message = "[ " + session->id + " ] " + " Enter Room";
+  string message = "[ " + session->name_ + " ] " + " Enter Room";
   auto protocol = Protocol::create(ProtocolType::ALERT, message);
   WriteAll(protocol, session, false);
 }
@@ -44,7 +44,7 @@ void Room::Leave(Session::pointer session) {
   clients_.remove(session);
   session->setRoom(nullptr);  // FIXME: Room에서 Session->room을 설정하는 것이 불편..
 
-  string message = "[ " + session->id + " ] " + " Leave Room";
+  string message = "[ " + session->name_ + " ] " + " Leave Room";
   auto protocol = Protocol::create(ProtocolType::ALERT, message);
   WriteAll(protocol, session);
 

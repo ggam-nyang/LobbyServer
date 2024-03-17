@@ -15,7 +15,7 @@ std::shared_ptr<Lobby> Lobby::create() {
 void Lobby::Enter(Session::pointer session) {
   clients_.push_back(session);
 
-  string message = "[ " + session->id + " ] " + " Enter Lobby";
+  string message = "[ " + session->name_ + " ] " + " Enter Lobby";
   auto protocol = Protocol::create(ProtocolType::ALERT, message);
 
   WriteAll(protocol, session, false);
@@ -61,7 +61,7 @@ void Lobby::CreateRoom(Session::pointer session) {
     auto room = Room::create(this);
     rooms_[room->id_] = room;
 
-    string message = "[ " + session->id + " ] " + " Create Room id: " + std::to_string(room->id_);
+    string message = "[ " + session->name_ + " ] " + " Create Room name_: " + std::to_string(room->id_);
     auto protocol = Protocol::create(ProtocolType::ALERT, message);
 
     WriteAll(protocol, session, false);
@@ -69,7 +69,7 @@ void Lobby::CreateRoom(Session::pointer session) {
 
 void Lobby::EnterRoom(Session::pointer session, int room_id) {
     if (!rooms_.contains(room_id)) {
-        string message = "Room id: " + std::to_string(room_id) + " is not exist";
+        string message = "Room name_: " + std::to_string(room_id) + " is not exist";
         auto protocol = Protocol::create(ProtocolType::ALERT, message);
         return session->write(protocol);
     }

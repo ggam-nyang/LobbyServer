@@ -49,7 +49,7 @@ private:
     // 동기식 Read (쓰레드가 각각의 세션을 1:1 담당)
     void read(Session::pointer session);
 
-    bool isValidId(string& id);
+    bool isValidName(string& name);
 
     void writeAll(ProtocolPtr& protocolPtr, Session::pointer session, bool isExceptMe = true);
 

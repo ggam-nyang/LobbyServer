@@ -86,10 +86,10 @@ void Server::read(Session::pointer session) {
   session->read();
 }
 
-bool Server::isValidId(string& id) {
-  // 중복된 아이디인지 체크
+bool Server::isValidName(string& name) {
+  // 중복된 이름인지 체크
   for (const auto& session : sessions_) {
-    if (id == session->id) {
+    if (name == session->name_) {
       return false;
     }
   }
@@ -100,7 +100,7 @@ void Server::writeAll(ProtocolPtr& protocolPtr, Session::pointer sender,
                       bool isExceptMe) {
   for (const auto& session : sessions_) {
     if (isExceptMe) {
-      if (session->id == sender->id) {
+      if (session->name_ == sender->name_) {
         continue;
       }
     }
@@ -111,7 +111,7 @@ void Server::writeAll(ProtocolPtr& protocolPtr, Session::pointer sender,
 void Server::closeSession(Session::pointer session) {
   session->close();
 
-  ProtocolPtr temp = Protocol::create(ProtocolType::ALERT, session->id + " exit");
+  ProtocolPtr temp = Protocol::create(ProtocolType::ALERT, session->name_ + " exit");
   writeAll(temp, session, true);
 
   for (int i = 0; i < sessions_.size(); i++) {
