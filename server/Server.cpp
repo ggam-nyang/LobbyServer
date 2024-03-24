@@ -100,7 +100,7 @@ void Server::writeAll(ProtocolPtr& protocolPtr, Session::pointer sender,
                       bool isExceptMe) {
   for (const auto& session : sessions_) {
     if (isExceptMe) {
-      if (session->name_ == sender->name_) {
+      if (session->id_ == sender->id_) {
         continue;
       }
     }

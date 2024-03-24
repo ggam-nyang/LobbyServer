@@ -17,12 +17,16 @@ class Room;
 
 using std::string;
 
+// FIXME: User 객체와 분리..?
 class Session : public std::enable_shared_from_this<Session> {
+  static int ID_COUNTER;
+
  public:
   using pointer = std::shared_ptr<Session>;
 
   boost::asio::ip::tcp::socket socket_;
   Server* server_;
+
   int id_;
   string name_;
   string readBuffer;
@@ -32,6 +36,7 @@ class Session : public std::enable_shared_from_this<Session> {
 
   // FIXME: private으로 하고 싶은데, 그러면 create에서 접근이 안됨
   explicit Session(boost::asio::io_context& io_context, Server* server);
+  Session() = delete;
 
   void read();
   void write(ProtocolPtr& protocolPtr);
@@ -43,7 +48,7 @@ class Session : public std::enable_shared_from_this<Session> {
                    bool isExceptMe = true);
 
   void protocolManage(ProtocolPtr& protocolPtr);
-  void setId(string& body);
+  void setName(string& body);
   void chat(string& body);
   void alert(string& body);
   void RoomList(string& body);

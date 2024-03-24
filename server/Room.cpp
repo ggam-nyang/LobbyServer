@@ -8,7 +8,7 @@
 
 int Room::ID_COUNTER = 0;
 
-Room::Room(int id, Lobby* lobby) : id_(id), lobby_(lobby) {}
+Room::Room(int id, Lobby* lobby) : lobby_(lobby), id_(id) {}
 
 std::shared_ptr<Room> Room::create(Lobby* lobby) {
   ++ID_COUNTER;

@@ -9,13 +9,18 @@
 #include "Room.hpp"
 #include "Server.h"
 
+int Session::ID_COUNTER = 0;
+
 Session::pointer Session::create(boost::asio::io_context& io_context,
                                  Server* server) {
-  return std::make_shared<Session>(io_context, server);
+  const Session::pointer pointer =
+      std::make_shared<Session>(io_context, server);
+  pointer->id_ = 1;
+  return pointer;
 }
 
 Session::Session(boost::asio::io_context& io_context, Server* server)
-    : socket_(io_context), server_(server) {}
+    : server_(server), socket_(io_context), id_(++ID_COUNTER) {}
 
 void Session::read() {
   boost::system::error_code ec;
@@ -55,7 +60,7 @@ void Session::protocolManage(ProtocolPtr& protocolPtr) {
     using enum ProtocolType;
 
     case SET_ID:
-      setId(body);
+      setName(body);
       break;
     case CHAT:
       chat(body);
@@ -115,7 +120,7 @@ void Session::WriteToRoom(ProtocolPtr& protocolPtr, std::shared_ptr<Room> room,
   room->WriteAll(protocolPtr, shared_from_this(), isExceptMe);
 }
 
-void Session::setId(std::string& body) {
+void Session::setName(std::string& body) {
   std::string writeBuffer;
   if (server_->isValidName(body)) {
     name_ = body;
