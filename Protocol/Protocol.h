@@ -20,6 +20,7 @@ enum class ProtocolType : uint32_t {
   ENTER_ROOM,
   LEAVE_ROOM,
   ROOM_LIST,
+  BATTLE_START,
   UNKNOWN
 };
 

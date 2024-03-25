@@ -58,7 +58,7 @@ void Lobby::CreateRoom(Session::pointer session) {
         return;
     }
 
-    auto room = Room::create(this);
+    auto room = Room::create(this, session);
     rooms_[room->id_] = room;
 
     string message = "[ " + session->name_ + " ] " + " Create Room name_: " + std::to_string(room->id_);

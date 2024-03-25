@@ -18,8 +18,17 @@ class Room;
 using std::string;
 
 // FIXME: User 객체와 분리..?
+enum class UserState {
+  NONE,
+  LOBBY,
+  ROOM,
+  READY,
+  BATTLE,
+};
+
 class Session : public std::enable_shared_from_this<Session> {
   static int ID_COUNTER;
+  UserState state_ = UserState::NONE; // 상태 관리를... 더 좋은 방법은 없을까
 
  public:
   using pointer = std::shared_ptr<Session>;
@@ -27,13 +36,12 @@ class Session : public std::enable_shared_from_this<Session> {
   boost::asio::ip::tcp::socket socket_;
   Server* server_;
 
-  int id_;
+  const int id_ = ID_COUNTER;
   string name_;
   string readBuffer;
   std::array<char, 100> buffer;
 
   static pointer create(boost::asio::io_context& io_context, Server* server);
-
   // FIXME: private으로 하고 싶은데, 그러면 create에서 접근이 안됨
   explicit Session(boost::asio::io_context& io_context, Server* server);
   Session() = delete;
@@ -46,7 +54,6 @@ class Session : public std::enable_shared_from_this<Session> {
                     bool isExceptMe = true);
   void WriteToRoom(ProtocolPtr& protocolPtr, std::shared_ptr<Room> room,
                    bool isExceptMe = true);
-
   void protocolManage(ProtocolPtr& protocolPtr);
   void setName(string& body);
   void chat(string& body);
@@ -56,9 +63,8 @@ class Session : public std::enable_shared_from_this<Session> {
   void EnterRoom(string& body);
   void EnterLobby(std::shared_ptr<Lobby> lobby);
   void LeaveRoom();
-
+  void BattleStart();
   void close();
-
   void setRoom(std::shared_ptr<Room> room);
   bool IsInRoom() const;
 

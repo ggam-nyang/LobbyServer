@@ -47,6 +47,9 @@ std::shared_ptr<Protocol> Protocol::from(const std::string& input) {
   if (order == ":leave_room")
     return create(ProtocolType::LEAVE_ROOM, body);
 
+  if (order == ":battle_start")
+    return create(ProtocolType::BATTLE_START, body);
+
   return create(ProtocolType::UNKNOWN, "Wrong message");
 }
 

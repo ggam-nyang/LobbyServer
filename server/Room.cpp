@@ -8,12 +8,15 @@
 
 int Room::ID_COUNTER = 0;
 
-Room::Room(int id, Lobby* lobby) : lobby_(lobby), id_(id) {}
+Room::Room(Lobby* lobby) : lobby_(lobby) {}
 
-std::shared_ptr<Room> Room::create(Lobby* lobby) {
+std::shared_ptr<Room> Room::create(Lobby* lobby, Session::pointer owner) {
   ++ID_COUNTER;
-  return std::make_shared<Room>(ID_COUNTER, lobby);
+  const std::shared_ptr<Room>& room = std::make_shared<Room>(lobby);
+  room->owner_ = owner;
+  return room;
 }
+
 
 void Room::WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
                     bool isExceptMe) {
@@ -51,4 +54,8 @@ void Room::Leave(Session::pointer session) {
   //    if (clients_.empty()) {
   //        lobby_->RemoveRoom(shared_from_this());
   //    }
+}
+
+bool Room::IsOwner(Session::pointer session) {
+  return owner_ == session;
 }

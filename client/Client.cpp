@@ -77,8 +77,6 @@ void Client::Send() {
 }
 
 void Client::Receive() {
-//  cout << "Receive. ThreadId:" << std::this_thread::get_id() << endl;
-
   sock.async_read_some(asio::buffer(buffer_, buffer_.size()),
                        [this](const system::error_code& ec, size_t size) {
                          ReceiveHandle(ec, size);

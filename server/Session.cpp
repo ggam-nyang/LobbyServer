@@ -15,12 +15,12 @@ Session::pointer Session::create(boost::asio::io_context& io_context,
                                  Server* server) {
   const Session::pointer pointer =
       std::make_shared<Session>(io_context, server);
-  pointer->id_ = 1;
+  ++ID_COUNTER;
   return pointer;
 }
 
 Session::Session(boost::asio::io_context& io_context, Server* server)
-    : server_(server), socket_(io_context), id_(++ID_COUNTER) {}
+    : socket_(io_context), server_(server) {}
 
 void Session::read() {
   boost::system::error_code ec;
@@ -83,6 +83,9 @@ void Session::protocolManage(ProtocolPtr& protocolPtr) {
     case LEAVE_ROOM:
       LeaveRoom();
       break;
+    case BATTLE_START:
+      BattleStart();
+      break;
     default:
       alert(body);
       break;
@@ -90,7 +93,7 @@ void Session::protocolManage(ProtocolPtr& protocolPtr) {
 }
 
 void Session::write(ProtocolPtr& protocolPtr) {
-  // 이 부분도 동일합니다. protocolPtr을 shared_ptr로 바꾸고, 이에 대한 capture를 통해 life-cycle을 확보해주셔야 합니다
+  // 이 부분도 동일합니다. protocolPtr을 shared_ptr로 바꾸고, 이에 대한 capture를 통해 life-cycle을 확보
   socket_.async_write_some(
       boost::asio::buffer(protocolPtr->encode()),
       [this, protocolPtr](const boost::system::error_code& ec, size_t _) {
@@ -235,4 +238,21 @@ void Session::setRoom(std::shared_ptr<Room> room) {
 
 bool Session::IsInRoom() const {
   return room_ != nullptr;
+}
+
+void Session::BattleStart() {
+  if (room_ == nullptr) {
+    string errorMsg = "Not in room. Please enter room first.";
+    return alert(errorMsg);
+  }
+
+  if (!room_->IsOwner(shared_from_this())) {
+    string errorMsg = "Only owner can start battle.";
+    return alert(errorMsg);
+  }
+
+  // Battle logic
+  // 배틀을 시작합니다 + 배틀을 시작하라고 알려야 함 client에게
+  // client도 동일한 Packet 관리가 필요해보임...
+  // Packet을 빨리... 바꿔볼까..?
 }
