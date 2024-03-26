@@ -3,10 +3,11 @@
 //
 
 #include "Client.h"
+#include "../Protocol/Packet/Packet.hpp"
 #include "../Protocol/Protocol.h"
+#include "ClientPacketManager.hpp"
 
-Client::
-    Client(std::string ip_address, unsigned short port_num)
+Client::Client(std::string ip_address, unsigned short port_num)
     : endpoint_(asio::ip::address::from_string(ip_address), port_num),
       sock(io_context_, endpoint_.protocol()),
       work_(new asio::io_service::work(io_context_)) {}
@@ -59,21 +60,28 @@ void Client::OnConnect(const system::error_code& ec) {
 }
 
 void Client::Send() {
-  ProtocolPtr temp;
-  if (!isSetId) {
-    cout << "set nickname please." << endl;
-    isSetId = true;
-    getline(std::cin, writeBuffer_);
-    temp = Protocol::create(ProtocolType::SET_ID, writeBuffer_);
-  } else {
-    getline(std::cin, writeBuffer_);
-    temp = Protocol::from(writeBuffer_);
-  }
+  //  ProtocolPtr temp;
+  //  if (!isSetId) {
+  //    cout << "set nickname please." << endl;
+  //    isSetId = true;
+  //    getline(std::cin, writeBuffer_);
+  //    temp = Protocol::create(ProtocolType::SET_ID, writeBuffer_);
+  //  } else {
+  //    getline(std::cin, writeBuffer_);
+  //    temp = Protocol::from(writeBuffer_);
+  //  }
+  cout << "Input message: " << endl;
+  getline(std::cin, writeBuffer_);
+  char* packet;
+  uint16_t size;
+  tie(packet, size) = packetManager_.SendPacket(this, writeBuffer_);
 
+  auto temp = packetManager_.SendPacket(this, writeBuffer_);
   // ProtocolPtr을 캡쳐해, async_write_some이 완료되고, SendHandle이 처리 될때까지 life-cycle을 유지하도록 했습니다
-  sock.async_write_some(
-      asio::buffer(temp->encode()),
-      [this, temp](const system::error_code& ec, size_t) { SendHandle(ec, temp); });
+  sock.async_write_some(asio::buffer(temp.first, temp.second),
+                        [this, packet](const system::error_code& ec, size_t) {
+                          SendHandle(ec, packet);
+                        });
 }
 
 void Client::Receive() {
@@ -83,7 +91,7 @@ void Client::Receive() {
                        });
 }
 
-void Client::SendHandle(const system::error_code& ec, const ProtocolPtr& protocol) {
+void Client::SendHandle(const system::error_code& ec, const char* packet) {
   if (ec) {
     cout << "async_write_some error: " << ec.message() << endl;
     StopAll();
@@ -109,10 +117,11 @@ void Client::ReceiveHandle(const system::error_code& ec, size_t size) {
   buffer_[size] = '\0';
   readBuffer_ = std::string(buffer_.data(), size);
 
-  ProtocolPtr protocol = Protocol::create(readBuffer_);
+  packetManager_.ReceivePacket(this, buffer_.data(), size);
+  //  ProtocolPtr protocol = Protocol::create(readBuffer_);
 
   // lock 자체를 제거 했습니다
-  cout << protocol->getBody() << endl;
+  //  cout << protocol->getBody() << endl;
 
   Receive();
 }
@@ -120,4 +129,12 @@ void Client::ReceiveHandle(const system::error_code& ec, size_t size) {
 void Client::StopAll() {
   sock.close();
   work_.reset();
+}
+
+void Client::ResponseSetName(SET_NAME_RESPONSE_PACKET packet) {
+  if (packet.result) {
+    cout << "Set name success" << endl;
+  } else {
+    cout << "Set name failed" << endl;
+  }
 }

@@ -5,53 +5,61 @@
 #ifndef BOOSTASIO_CLIENT_H
 #define BOOSTASIO_CLIENT_H
 
+#include <iostream>
 #include "boost/asio.hpp"
 #include "boost/bind.hpp"
 #include "boost/thread.hpp"
-#include <iostream>
 
+#include "../Protocol/Packet/Packet.hpp"
 #include "../Protocol/Protocol.h"
+#include "ClientPacketManager.hpp"
 
 using namespace boost;
 using boost::asio::ip::tcp;
 using std::cout;
 using std::endl;
 
+class ClientPacketManager;
+
 class Client {
-    asio::ip::tcp::endpoint endpoint_;
-    asio::io_context io_context_;
-    asio::ip::tcp::socket sock;
-    shared_ptr<boost::asio::io_service::work> work_;
-    thread_group thread_group_;
-    std::string writeBuffer_;
-    std::string readBuffer_;
-    std::array<char, 80> buffer_;
-    std::mutex lock_;
-    bool isSetId = false;
-    int id;
+  friend class ClientPacketManager;
+  asio::ip::tcp::endpoint endpoint_;
+  asio::io_context io_context_;
+  asio::ip::tcp::socket sock;
+  shared_ptr<boost::asio::io_service::work> work_;
+  thread_group thread_group_;
+  std::string writeBuffer_;
+  std::string readBuffer_;
+  std::array<char, 240> buffer_;
+  std::mutex lock_;
+  bool isSetId = false;
+  int id;
 
-public:
-    Client(std::string ip_address, unsigned short port_num);
+ public:
+  Client(std::string ip_address, unsigned short port_num);
 
-    void Start();
+  void Start();
 
-private:
-    void WorkerThread();
+ private:
+  void WorkerThread();
 
-    void TryConnect();
+  void TryConnect();
 
-    void OnConnect(const system::error_code &ec);
+  void OnConnect(const system::error_code& ec);
 
-    void Send();
+  void Send();
 
-    void Receive();
+  void Receive();
 
-    void SendHandle(const system::error_code& ec, const ProtocolPtr& protocol);
+  void SendHandle(const system::error_code& ec, const char* packet);
 
-    void ReceiveHandle(const system::error_code &ec, size_t size);
+  void ReceiveHandle(const system::error_code& ec, size_t size);
 
-    void StopAll();
+  void StopAll();
+
+  void ResponseSetName(SET_NAME_RESPONSE_PACKET packet);
+
+  ClientPacketManager packetManager_;
 };
 
-
-#endif //BOOSTASIO_CLIENT_H
+#endif  //BOOSTASIO_CLIENT_H

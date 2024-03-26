@@ -9,6 +9,7 @@
 #include <iostream>
 #include <memory>
 #include "../Protocol/Protocol.h"
+#include "../Protocol/Packet/Packet.hpp"
 #include "boost/asio.hpp"
 
 class Server;
@@ -26,10 +27,13 @@ enum class UserState {
   BATTLE,
 };
 
+class PacketManager;
+
 class Session : public std::enable_shared_from_this<Session> {
   static int ID_COUNTER;
   UserState state_ = UserState::NONE; // 상태 관리를... 더 좋은 방법은 없을까
 
+  friend class PacketManager;
  public:
   using pointer = std::shared_ptr<Session>;
 
@@ -48,6 +52,7 @@ class Session : public std::enable_shared_from_this<Session> {
 
   void read();
   void write(ProtocolPtr& protocolPtr);
+  void write(char * pBuf, uint16_t pSize);
   void onWrite(const boost::system::error_code& ec);
   void WriteToServer(ProtocolPtr& protocolPtr, bool isExceptMe = true);
   void WriteToLobby(ProtocolPtr& protocolPtr, std::shared_ptr<Lobby> lobby,
@@ -56,6 +61,7 @@ class Session : public std::enable_shared_from_this<Session> {
                    bool isExceptMe = true);
   void protocolManage(ProtocolPtr& protocolPtr);
   void setName(string& body);
+  void ReqSetName(SET_NAME_REQUEST_PACKET packet);
   void chat(string& body);
   void alert(string& body);
   void RoomList(string& body);
