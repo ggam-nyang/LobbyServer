@@ -34,6 +34,9 @@ $ cmake --build build
   - :leave_room => 방을 나갑니다.
   - :를 제외하고 입력 시, 방에 채팅
 
+## 블로그 포스팅
+- [소켓 통신 패킷 오류](https://ggam-nyang.github.io/c++/PacketProcess/)
+- [메모리 사이클 관리](https://ggam-nyang.github.io/c++/MemoryCycle/)
 
 ## 시퀀스 다이어그램
 ![Sequence1](assets/sequence1.png)
