@@ -27,6 +27,9 @@ add_executable(LobbyServer
         server/Lobby.hpp
         server/Room.cpp
         server/Room.hpp
+        Protocol/Packet/Packet.hpp
+        Protocol/Packet/PacketManager.cpp
+        Protocol/Packet/PacketManager.hpp
 )
 
 add_executable(LobbyClient
@@ -35,6 +38,9 @@ add_executable(LobbyClient
         client/Client.h
         Protocol/Protocol.cpp
         Protocol/Protocol.h
+        Protocol/Packet/Packet.hpp
+        client/ClientPacketManager.cpp
+        client/ClientPacketManager.hpp
 )
 
 target_link_libraries(LobbyServer ${Boost_LIBRARIES})

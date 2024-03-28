@@ -8,6 +8,7 @@
 #include "Lobby.hpp"
 #include "Room.hpp"
 #include "Server.h"
+#include "../Protocol/Packet/PacketManager.hpp"
 
 int Session::ID_COUNTER = 0;
 
@@ -41,13 +42,16 @@ void Session::read() {
     return;
   }
 
-  buffer[size] = '\0';
-  readBuffer = string(buffer.begin(), buffer.begin() + size);
-  ProtocolPtr protocol = Protocol::create(readBuffer);
-
-  protocolManage(protocol);
+  PacketManager packetManager;
+  packetManager.ProcessRecvPacket(shared_from_this(), buffer.data(), size);
   std::cout << "[" << boost::this_thread::get_id() << "] "
-            << protocol->getBody() << std::endl;
+            << buffer.data() << std::endl;
+//  readBuffer = string(buffer.begin(), buffer.begin() + size);
+//  ProtocolPtr protocol = Protocol::create(readBuffer);
+
+//  protocolManage(protocol);
+//  std::cout << "[" << boost::this_thread::get_id() << "] "
+//            << protocol->getBody() << std::endl;
 
   read();
 }
@@ -101,6 +105,14 @@ void Session::write(ProtocolPtr& protocolPtr) {
       });
 }
 
+void Session::write(char* pBuf, uint16_t pSize) {
+  socket_.async_write_some(
+      boost::asio::buffer(pBuf, pSize),
+      [this, pBuf](const boost::system::error_code& ec, size_t _) {
+        onWrite(ec);
+      });
+}
+
 void Session::onWrite(const boost::system::error_code& ec) {
   if (ec) {
     std::cout << "[" << boost::this_thread::get_id()
@@ -134,6 +146,28 @@ void Session::setName(std::string& body) {
 
   ProtocolPtr alert = Protocol::create(ProtocolType::ALERT, writeBuffer);
   write(alert);
+}
+
+void Session::ReqSetName(SET_NAME_REQUEST_PACKET packet) {
+  SET_NAME_RESPONSE_PACKET response{};
+  std::string writeBuffer;
+  auto username = string(packet.username);
+  cout << "username:" << username << endl;
+
+  if (server_->isValidName(username)) {
+    name_ = username;
+    writeBuffer = "set [" + name_ + "] success!";
+
+    // FIXME: packet encoding은 모두 PacketManager에서 하고 싶은데.. 어찌해야할지
+    response.result = 1;
+    response.PacketId = static_cast<uint16_t>(PACKET_ID::SET_NAME_RESPONSE);
+    response.PacketLength = sizeof(SET_NAME_RESPONSE_PACKET);
+
+    write(reinterpret_cast<char*>(&response), sizeof(response));
+
+  } else {
+    writeBuffer = username + "는 이미 사용중인 name_ 입니다.";
+  }
 }
 
 void Session::chat(std::string& body) {
