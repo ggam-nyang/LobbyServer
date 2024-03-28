@@ -42,8 +42,12 @@ const int MAX_USERNAME_LEN = 20;
 
 struct SET_NAME_REQUEST_PACKET : public PACKET_HEADER
 {
-  char username[MAX_USERNAME_LEN+1];
-//  std::string username;
+  SET_NAME_REQUEST_PACKET() : PACKET_HEADER() {
+    PacketId = static_cast<uint16_t>(PACKET_ID::SET_NAME_REQUEST);
+    PacketLength = sizeof(SET_NAME_REQUEST_PACKET);
+  }
+
+  char username[MAX_USERNAME_LEN+1]{};
 };
 const size_t SET_NAME_REQUEST_PACKET_SZIE = sizeof(SET_NAME_REQUEST_PACKET);
 

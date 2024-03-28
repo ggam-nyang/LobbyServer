@@ -43,8 +43,7 @@ void Session::read() {
   }
 
   PacketManager packetManager;
-  buffer[size] = '\0';
-  packetManager.ProcessRecvPacket(shared_from_this(), buffer.data(), size + 1);
+  packetManager.ProcessRecvPacket(shared_from_this(), buffer.data(), size);
   std::cout << "[" << boost::this_thread::get_id() << "] "
             << buffer.data() << std::endl;
 //  readBuffer = string(buffer.begin(), buffer.begin() + size);

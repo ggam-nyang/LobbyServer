@@ -25,6 +25,7 @@ class Client {
   friend class ClientPacketManager;
   asio::ip::tcp::endpoint endpoint_;
   asio::io_context io_context_;
+  ClientPacketManager packetManager_;
   asio::ip::tcp::socket sock;
   shared_ptr<boost::asio::io_service::work> work_;
   thread_group thread_group_;
@@ -59,7 +60,7 @@ class Client {
 
   void ResponseSetName(SET_NAME_RESPONSE_PACKET packet);
 
-  ClientPacketManager packetManager_;
+
 };
 
 #endif  //BOOSTASIO_CLIENT_H
