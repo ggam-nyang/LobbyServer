@@ -5,10 +5,11 @@
 #include "Session.hpp"
 #include <numeric>
 #include <ranges>
+#include <utility>
+#include "../Protocol/Packet/PacketManager.hpp"
 #include "Lobby.hpp"
 #include "Room.hpp"
 #include "Server.h"
-#include "../Protocol/Packet/PacketManager.hpp"
 
 int Session::ID_COUNTER = 0;
 
@@ -23,14 +24,18 @@ Session::pointer Session::create(boost::asio::io_context& io_context,
 Session::Session(boost::asio::io_context& io_context, Server* server)
     : socket_(io_context), server_(server) {}
 
-void Session::read() {
-  boost::system::error_code ec;
-  size_t size;
-  size = socket_.read_some(boost::asio::buffer(buffer, buffer.size()), ec);
+void Session::Receive() {
+  // 비동기로 구현 후, 동작 확인
+  socket_.async_read_some(asio::buffer(buffer_, buffer_.size()),
+                          [this](const system::error_code& ec, size_t size) {
+                            ReceiveHandle(ec, size);
+                          });
+}
 
+void Session::ReceiveHandle(const boost::system::error_code& ec, size_t size) {
   if (ec) {
     std::cout << "[" << boost::this_thread::get_id()
-              << "] read failed: " << ec.message() << std::endl;
+              << "] Receive failed: " << ec.message() << std::endl;
     server_->closeSession(shared_from_this());
     return;
   }
@@ -38,79 +43,23 @@ void Session::read() {
   if (size == 0) {
     std::cout << "[" << boost::this_thread::get_id() << "] user wants to end "
               << std::endl;
-    close();
     return;
   }
 
-  PacketManager packetManager;
-  packetManager.ProcessRecvPacket(shared_from_this(), buffer.data(), size);
-  std::cout << "[" << boost::this_thread::get_id() << "] "
-            << buffer.data() << std::endl;
-//  readBuffer = string(buffer.begin(), buffer.begin() + size);
-//  ProtocolPtr protocol = Protocol::create(readBuffer);
+  server_->packetManager_.ReceivePacket(shared_from_this(), buffer_.data(),
+                                        size);
+  std::cout << "[" << boost::this_thread::get_id() << "] " << buffer_.data()
+            << std::endl;
 
-//  protocolManage(protocol);
-//  std::cout << "[" << boost::this_thread::get_id() << "] "
-//            << protocol->getBody() << std::endl;
-
-  read();
+  Receive();
 }
 
-void Session::protocolManage(ProtocolPtr& protocolPtr) {
-  Protocol::Header header = protocolPtr->getHeader();
-  string body = protocolPtr->getBody();
-
-  switch (header.type) {
-    using enum ProtocolType;
-
-    case SET_ID:
-      setName(body);
-      break;
-    case CHAT:
-      chat(body);
-      break;
-    case ALERT:
-      alert(body);
-      break;
-    case ENTER_ROOM:
-      EnterRoom(body);
-      break;
-    case CREATE_ROOM:
-      CreateRoom(body);
-      break;
-    case ROOM_LIST:
-      RoomList(body);
-      break;
-    case ENTER_LOBBY:
-      EnterLobby(server_->lobbies_.begin()->second);  // FIXME: 구조 개선 필요
-      break;
-    case LEAVE_ROOM:
-      LeaveRoom();
-      break;
-    case BATTLE_START:
-      BattleStart();
-      break;
-    default:
-      alert(body);
-      break;
-  }
-}
-
-void Session::write(ProtocolPtr& protocolPtr) {
-  // 이 부분도 동일합니다. protocolPtr을 shared_ptr로 바꾸고, 이에 대한 capture를 통해 life-cycle을 확보
-  socket_.async_write_some(
-      boost::asio::buffer(protocolPtr->encode()),
-      [this, protocolPtr](const boost::system::error_code& ec, size_t _) {
-        onWrite(ec);
-      });
-}
+void Session::write(ProtocolPtr& protocolPtr) {}
 
 void Session::write(char* pBuf, uint16_t pSize) {
-  socket_.async_write_some(
-      boost::asio::buffer(pBuf, pSize),
-      [this, pBuf](const boost::system::error_code& ec, size_t _) {
-        onWrite(ec);
-      });
+  socket_.async_write_some(boost::asio::buffer(pBuf, pSize),
+                           [this, pBuf](const boost::system::error_code& ec,
+                                        size_t _) { onWrite(ec); });
 }
 
 void Session::onWrite(const boost::system::error_code& ec) {
@@ -135,54 +84,133 @@ void Session::WriteToRoom(ProtocolPtr& protocolPtr, std::shared_ptr<Room> room,
   room->WriteAll(protocolPtr, shared_from_this(), isExceptMe);
 }
 
-void Session::setName(std::string& body) {
-  std::string writeBuffer;
-  if (server_->isValidName(body)) {
-    name_ = body;
-    writeBuffer = "set [" + name_ + "] success!";
-  } else {
-    writeBuffer = body + "는 이미 사용중인 name_ 입니다.";
-  }
-
-  ProtocolPtr alert = Protocol::create(ProtocolType::ALERT, writeBuffer);
-  write(alert);
-}
-
-void Session::ReqSetName(SET_NAME_REQUEST_PACKET packet) {
-  SET_NAME_RESPONSE_PACKET response{};
-  std::string writeBuffer;
+void Session::SetNameReq(SET_NAME_REQUEST_PACKET& packet) {
+  auto response = SET_NAME_RESPONSE_PACKET();
   auto username = string(packet.username);
   cout << "username:" << username << endl;
 
   if (server_->isValidName(username)) {
     name_ = username;
-    writeBuffer = "set [" + name_ + "] success!";
 
-    // FIXME: packet encoding은 모두 PacketManager에서 하고 싶은데.. 어찌해야할지
     response.result = 1;
-    response.PacketId = static_cast<uint16_t>(PACKET_ID::SET_NAME_RESPONSE);
-    response.PacketLength = sizeof(SET_NAME_RESPONSE_PACKET);
-
-    write(reinterpret_cast<char*>(&response), sizeof(response));
-
   } else {
-    writeBuffer = username + "는 이미 사용중인 name_ 입니다.";
+    response.result = 0;
   }
+
+  write(reinterpret_cast<char*>(&response), response.PacketLength);
 }
 
-void Session::chat(std::string& body) {
-  auto writeBuffer = "[" + name_ + "] : " + body;
-  ProtocolPtr chat = Protocol::create(ProtocolType::CHAT, writeBuffer);
+void Session::EnterLobbyReq(LOBBY_ENTER_REQUEST_PACKET& packet) {
+  auto response = LOBBY_ENTER_RESPONSE_PACKET();
 
-  if (room_ == nullptr) {
-    if (lobby_ == nullptr) {
-      string errorMsg = "Not in Lobby. Please enter lobby first.";
-      return alert(errorMsg);
-    }
-    WriteToLobby(chat, lobby_, true);
+  if (lobby_ != nullptr) {
+    response.result = 0;
+  } else {
+    response.result = 1;
+    lobby_ = server_->lobbies_.begin()->second;  // FIXME: Lobby 여러개로 수정
+    lobby_->Enter(shared_from_this());
+  }
+
+  write(reinterpret_cast<char*>(&response), response.PacketLength);
+}
+
+void Session::CreateRoomReq(ROOM_CREATE_REQUEST_PACKET& packet) {
+  auto response = ROOM_CREATE_RESPONSE_PACKET();
+
+  if (IsInRoom()) {
+    response.result = 0;
+  } else {
+    response.result =
+        lobby_->CreateRoom(shared_from_this(), string(packet.roomName));
+  }
+
+  write(reinterpret_cast<char*>(&response), response.PacketLength);
+}
+
+void Session::ListRoomReq(ROOM_LIST_REQUEST_PACKET& packet) {
+  auto response = ROOM_LIST_RESPONSE_PACKET();
+
+  if (lobby_ == nullptr) {
+    response.result = 0;
+    write(reinterpret_cast<char*>(&response), response.PacketLength);
     return;
   }
-  WriteToRoom(chat, room_, true);
+
+  auto rooms = lobby_->GetRooms();
+  response.result = 1;
+  response.roomCount = rooms.size();
+  for (int i = 0; i < rooms.size(); ++i) {
+    response.roomList[i] =
+        ROOM{rooms[i]->name_, static_cast<uint16_t>(rooms[i]->id_)};
+  }
+
+  write(reinterpret_cast<char*>(&response), response.PacketLength);
+}
+
+void Session::EnterRoomReq(ROOM_ENTER_REQUEST_PACKET& packet) {
+  auto response = ROOM_ENTER_RESPONSE_PACKET();
+
+  if (IsInRoom()) {
+    response.result = 0;
+  } else if (lobby_ == nullptr) {
+    response.result = 2;
+  } else {
+    response.result = lobby_->EnterRoom(shared_from_this(), packet.roomId);
+  }
+
+  if (response.result == 1) {
+    auto broadcast_response = ROOM_ENTER_BROADCAST_PACKET();
+    strncpy(broadcast_response.username, name_.c_str(), name_.size());
+
+    room_->Broadcast(reinterpret_cast<char*>(&broadcast_response),
+                     broadcast_response.PacketLength, shared_from_this());
+  }
+
+  write(reinterpret_cast<char*>(&response), response.PacketLength);
+}
+
+void Session::LeaveRoomReq(ROOM_LEAVE_REQUEST_PACKET& packet) {
+  auto response = ROOM_LEAVE_RESPONSE_PACKET();
+
+  if (!IsInRoom()) {
+    response.result = 0;
+  } else if (lobby_ == nullptr) {
+    response.result = 2;
+  } else {
+    response.result = 1;
+  }
+
+  if (response.result == 1) {
+    auto broadcast_response = ROOM_LEAVE_BROADCAST_PACKET();
+    strncpy(broadcast_response.username, name_.c_str(), name_.size());
+
+    room_->Broadcast(reinterpret_cast<char*>(&broadcast_response),
+                     broadcast_response.PacketLength, shared_from_this(), true);
+    room_->Leave(shared_from_this());
+  }
+
+  write(reinterpret_cast<char*>(&response), response.PacketLength);
+}
+
+void Session::ChatReq(CHAT_REQUEST_PACKET& packet) {
+  if (packet.chatType == CHAT_TYPE::LOBBY && (lobby_ == nullptr || IsInRoom()))
+    return;
+  if (packet.chatType == CHAT_TYPE::ROOM && !IsInRoom())
+    return;
+
+  auto response = CHAT_RESPONSE_PACKET();
+
+  response.chatType = packet.chatType;
+  strncpy(response.username, name_.c_str(), name_.size());
+  strncpy(response.chat, packet.chat, MAX_CHAT_LEN);
+
+  if (packet.chatType == CHAT_TYPE::LOBBY) {
+    lobby_->Broadcast(reinterpret_cast<char*>(&response), response.PacketLength,
+                      shared_from_this());
+  } else {
+    room_->Broadcast(reinterpret_cast<char*>(&response), response.PacketLength,
+                     shared_from_this());
+  }
 }
 
 void Session::alert(std::string& body) {
@@ -191,74 +219,11 @@ void Session::alert(std::string& body) {
   write(alert);
 }
 
-void Session::RoomList(string& body) {
-  if (lobby_ == nullptr) {
-    string errorMsg = "Not in Lobby. Please enter lobby first.";
-    return alert(errorMsg);
-  }
+void Session::RoomList(string& body) {}
 
-  std::vector<int> room_list = lobby_->getRoomList(shared_from_this());
-  if (room_list.empty()) {
-    string errorMsg = "No room in lobby";
-    return alert(errorMsg);
-  }
-  auto const& writeBuffer = std::accumulate(
-      room_list.begin() + 1, room_list.end(), std::to_string(room_list[0]),
-      [](const std::string& a, int b) { return a + ", " + std::to_string(b); });
+void Session::CreateRoom(string& body) {}
 
-  ProtocolPtr protocol = Protocol::create(ProtocolType::ROOM_LIST, writeBuffer);
-  write(protocol);
-}
-
-void Session::EnterLobby(std::shared_ptr<Lobby> lobby) {
-  if (lobby_ != nullptr) {
-    string errorMsg = "Already in lobby. Please leave lobby first.";
-    return alert(errorMsg);
-  }
-
-  lobby_ = lobby;
-  lobby_->Enter(shared_from_this());
-}
-
-void Session::CreateRoom(string& body) {
-  if (room_ != nullptr) {
-    string errorMsg = "Already in room. Please leave room first.";
-    return alert(errorMsg);
-  }
-
-  lobby_->CreateRoom(shared_from_this());
-}
-
-void Session::EnterRoom(string& body) {
-  if (lobby_ == nullptr) {
-    string errorMsg = "Not in Lobby. Please enter lobby first.";
-    return alert(errorMsg);
-  }
-
-  if (room_ != nullptr) {
-    string errorMsg = "Already in room. Please leave room first.";
-    return alert(errorMsg);
-  }
-
-  if (std::all_of(body.begin(), body.end(),
-                  [](char c) { return std::isdigit(c); })) {
-    int room_id = std::stoi(body);
-    lobby_->EnterRoom(shared_from_this(), room_id);
-    return;
-  }
-
-  string errorMsg = "Wrong room number. Room number should be integer.";
-  return alert(errorMsg);
-}
-
-void Session::LeaveRoom() {
-  if (room_ == nullptr) {
-    string errorMsg = "Not in room. Please enter room first.";
-    return alert(errorMsg);
-  }
-
-  room_->Leave(shared_from_this());
-}
+void Session::EnterRoom(string& body) {}
 
 void Session::close() {
   socket_.close();
@@ -266,8 +231,7 @@ void Session::close() {
 }
 
 void Session::setRoom(std::shared_ptr<Room> room) {
-  //  room_ = std::make_shared<Room>(room); // FIXME
-  room_ = room;
+  room_ = std::move(room);
 }
 
 bool Session::IsInRoom() const {

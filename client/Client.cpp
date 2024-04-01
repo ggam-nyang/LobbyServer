@@ -61,14 +61,12 @@ void Client::OnConnect(const system::error_code& ec) {
 }
 
 void Client::Send() {
-  cout << "Client Send: " << endl;
   getline(std::cin, writeBuffer_);
 
   packetManager_.SendPacket(this, writeBuffer_);
 }
 
 void Client::Receive() {
-
   sock.async_read_some(asio::buffer(buffer_, buffer_.size()),
                        [this](const system::error_code& ec, size_t size) {
                          ReceiveHandle(ec, size);
@@ -110,9 +108,78 @@ void Client::StopAll() {
 }
 
 void Client::ResponseSetName(SET_NAME_RESPONSE_PACKET packet) {
-  if (packet.result) {
-    cout << "Set name success" << endl;
-  } else {
-    cout << "Set name failed" << endl;
+  if (packet.result == 0) {
+    cout << "이미 사용중인 이름입니다." << endl;
+  } else if (packet.result == 1) {
+    cout << "이름이 설정되었습니다." << endl;
   }
+}
+
+void Client::ResponseEnterLobby(LOBBY_ENTER_RESPONSE_PACKET packet) {
+  if (packet.result == 0) {
+    cout << "이미 로비에 입장했습니다." << endl;
+  } else if (packet.result == 1) {
+    cout << "로비에 입장했습니다." << endl;
+    in_lobby_ = true;
+  }
+}
+
+void Client::ResponseCreateRoom(ROOM_CREATE_RESPONSE_PACKET packet) {
+  if (packet.result == 0) {
+    cout << "이미 방에 입장한 상태입니다." << endl;
+  } else if (packet.result == 1) {
+    cout << "방 생성에 성공했습니다." << endl;
+  } else if (packet.result == 2) {
+    cout << "더 이상 방을 생성할 수 없습니다." << endl;
+  }
+}
+
+void Client::ResponseRoomList(ROOM_LIST_RESPONSE_PACKET packet) {
+  if (packet.result == 0) {
+    cout << "로비에 입장하지 않았습니다." << endl;
+  } else if (packet.result == 1) {
+    cout << "방 목록을 출력합니다." << endl;
+
+    for (int i = 0; i < packet.roomCount; ++i) {
+      cout << "id: " << packet.roomList[i].id  << " name: " << packet.roomList[i].name << endl;
+    }
+  }
+}
+
+void Client::ResponseEnterRoom(ROOM_ENTER_RESPONSE_PACKET packet) {
+  if (packet.result == 0) {
+    cout << "이미 방에 입장한 상태입니다." << endl;
+  } else if (packet.result == 1) {
+    cout << "방에 입장했습니다." << endl;
+    in_room_ = true;
+  } else if (packet.result == 2) {
+    cout << "로비에 입장하지 않았습니다." << endl;
+  } else if (packet.result == 3) {
+    cout << "방이 꽉 찼습니다." << endl;
+  } else if (packet.result == 4) {
+    cout << "해당 방이 존재하지 않습니다." << endl;
+  }
+}
+
+void Client::ResponseEnterRoomBroadcast(ROOM_ENTER_BROADCAST_PACKET packet) {
+  cout << "방에 " << packet.username << "님이 입장했습니다." << endl;
+}
+
+void Client::ResponseLeaveRoom(ROOM_LEAVE_RESPONSE_PACKET packet) {
+  if (packet.result == 0) {
+    cout << "방에 입장하지 않았습니다." << endl;
+  } else if (packet.result == 1) {
+    cout << "방에서 나갔습니다." << endl;
+    in_room_ = false;
+  } else if (packet.result == 2) {
+    cout << "로비에 입장하지 않았습니다." << endl;
+  }
+}
+
+void Client::ResponseLeaveRoomBroadcast(ROOM_LEAVE_BROADCAST_PACKET packet) {
+  cout << "방에서 " << packet.username << "님이 나갔습니다." << endl;
+}
+
+void Client::ResponseChat(CHAT_RESPONSE_PACKET packet) {
+  cout << "[" << packet.username << "] : "<< packet.chat << endl;
 }

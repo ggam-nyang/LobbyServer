@@ -31,10 +31,12 @@ class Client {
   thread_group thread_group_;
   std::string writeBuffer_;
   std::string readBuffer_;
-  std::array<char, 240> buffer_;
+  std::array<char, 1000> buffer_;
   std::mutex lock_;
-  bool isSetId = false;
-  int id;
+
+ public:
+  bool in_lobby_ = false;
+  bool in_room_ = false;
 
  public:
   Client(std::string ip_address, unsigned short port_num);
@@ -60,7 +62,21 @@ class Client {
 
   void ResponseSetName(SET_NAME_RESPONSE_PACKET packet);
 
+  void ResponseEnterLobby(LOBBY_ENTER_RESPONSE_PACKET packet);
 
+  void ResponseCreateRoom(ROOM_CREATE_RESPONSE_PACKET packet);
+
+  void ResponseRoomList(ROOM_LIST_RESPONSE_PACKET packet);
+
+  void ResponseEnterRoom(ROOM_ENTER_RESPONSE_PACKET packet);
+
+  void ResponseEnterRoomBroadcast(ROOM_ENTER_BROADCAST_PACKET packet);
+
+  void ResponseLeaveRoom(ROOM_LEAVE_RESPONSE_PACKET packet);
+
+  void ResponseLeaveRoomBroadcast(ROOM_LEAVE_BROADCAST_PACKET packet);
+
+  void ResponseChat(CHAT_RESPONSE_PACKET packet);
 };
 
 #endif  //BOOSTASIO_CLIENT_H

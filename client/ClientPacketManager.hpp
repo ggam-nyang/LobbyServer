@@ -13,7 +13,7 @@ class Client;
 
 class ClientPacketManager {
   Client* client_;
-  constexpr static int MAX_PACKET_SIZE = 50;
+  constexpr static int MAX_PACKET_SIZE = 200;
 
  public:
   ClientPacketManager() = default;

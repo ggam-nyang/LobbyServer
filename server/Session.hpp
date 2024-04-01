@@ -27,13 +27,10 @@ enum class UserState {
   BATTLE,
 };
 
-class PacketManager;
-
 class Session : public std::enable_shared_from_this<Session> {
   static int ID_COUNTER;
   UserState state_ = UserState::NONE; // 상태 관리를... 더 좋은 방법은 없을까
 
-  friend class PacketManager;
  public:
   using pointer = std::shared_ptr<Session>;
 
@@ -43,32 +40,34 @@ class Session : public std::enable_shared_from_this<Session> {
   const int id_ = ID_COUNTER;
   string name_;
   string readBuffer;
-  std::array<char, 100> buffer;
+  std::array<char, 240> buffer_;
 
   static pointer create(boost::asio::io_context& io_context, Server* server);
   // FIXME: private으로 하고 싶은데, 그러면 create에서 접근이 안됨
   explicit Session(boost::asio::io_context& io_context, Server* server);
   Session() = delete;
 
-  void read();
+  void Receive();
+  void ReceiveHandle(const boost::system::error_code& ec, size_t size);
   void write(ProtocolPtr& protocolPtr);
-  void write(char * pBuf, uint16_t pSize);
+  void write(char* pBuf, uint16_t pSize);
   void onWrite(const boost::system::error_code& ec);
   void WriteToServer(ProtocolPtr& protocolPtr, bool isExceptMe = true);
   void WriteToLobby(ProtocolPtr& protocolPtr, std::shared_ptr<Lobby> lobby,
                     bool isExceptMe = true);
   void WriteToRoom(ProtocolPtr& protocolPtr, std::shared_ptr<Room> room,
                    bool isExceptMe = true);
-  void protocolManage(ProtocolPtr& protocolPtr);
-  void setName(string& body);
-  void ReqSetName(SET_NAME_REQUEST_PACKET packet);
-  void chat(string& body);
+  void SetNameReq(SET_NAME_REQUEST_PACKET& packet);
+  void EnterLobbyReq(LOBBY_ENTER_REQUEST_PACKET& packet);
+  void CreateRoomReq(ROOM_CREATE_REQUEST_PACKET& packet);
+  void ListRoomReq(ROOM_LIST_REQUEST_PACKET& packet);
+  void EnterRoomReq(ROOM_ENTER_REQUEST_PACKET& packet);
+  void LeaveRoomReq(ROOM_LEAVE_REQUEST_PACKET& packet);
+  void ChatReq(CHAT_REQUEST_PACKET& packet);
   void alert(string& body);
   void RoomList(string& body);
   void CreateRoom(string& body);
   void EnterRoom(string& body);
-  void EnterLobby(std::shared_ptr<Lobby> lobby);
-  void LeaveRoom();
   void BattleStart();
   void close();
   void setRoom(std::shared_ptr<Room> room);

@@ -18,13 +18,15 @@ class Room : public std::enable_shared_from_this<Room> {
 
  public:
   const int id_ = ID_COUNTER;
+  std::string name_;
   explicit Room(Lobby* lobby);
-  static std::shared_ptr<Room> create(Lobby* lobby, Session::pointer owner);
+  static std::shared_ptr<Room> create(Lobby* lobby, Session::pointer owner, std::string room_name);
 
   void WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
                 bool isExceptMe = true);
-  void Enter(Session::pointer session);
-  void Leave(Session::pointer session);
+  void Broadcast(char* packet, uint16_t copySize, Session::pointer sender, bool isExceptMe = true);
+  int Enter(Session::pointer session);
+  int Leave(Session::pointer session);
   bool IsOwner(Session::pointer session);
 };
 

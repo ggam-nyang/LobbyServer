@@ -1,14 +1,15 @@
 #ifndef LOBBYSERVER_SERVER_H
 #define LOBBYSERVER_SERVER_H
 
-#include <iostream>
 #include <boost/asio.hpp>
-#include <boost/thread.hpp>
 #include <boost/bind.hpp>
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include "../Protocol/Packet/PacketManager.hpp"
 #include "Session.hpp"
 
 using namespace boost;
@@ -28,6 +29,7 @@ class Server {
     std::mutex lock_;
     std::unordered_map<int, std::shared_ptr<Lobby>> lobbies_;
     std::vector<int> existingRooms_;
+    PacketManager packetManager_;
     const int THREAD_SIZE = 4;
 
     friend class Session;

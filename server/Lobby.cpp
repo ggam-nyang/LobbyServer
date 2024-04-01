@@ -4,7 +4,7 @@
 
 #include "Lobby.hpp"
 
-int Lobby::ID_COUNTER = 1;
+int Lobby::ID_COUNTER = 0;
 
 Lobby::Lobby(int id) : id_(id) {}
 
@@ -14,30 +14,34 @@ std::shared_ptr<Lobby> Lobby::create() {
 
 void Lobby::Enter(Session::pointer session) {
   clients_.push_back(session);
-
-  string message = "[ " + session->name_ + " ] " + " Enter Lobby";
-  auto protocol = Protocol::create(ProtocolType::ALERT, message);
-
-  WriteAll(protocol, session, false);
 }
 
-std::vector<int> Lobby::getRoomList(Session::pointer session) const {
-  std::vector<int> room_list{};
+std::vector<string> Lobby::GetRoomList() const {
+  std::vector<string> room_list{};
+  room_list.reserve(rooms_.size());
   for (const auto& [room_id, room] : rooms_) {
-    room_list.push_back(room_id);
+    room_list.push_back(room->name_);
   }
 
   return room_list;
 }
 
-std::shared_ptr<Room> Lobby::getRoom(int room_id) const {
+std::vector<std::shared_ptr<Room>> Lobby::GetRooms() const {
+  std::vector<std::shared_ptr<Room>> roomList{};
+  roomList.reserve(rooms_.size());
+  for (const auto& [room_id, room] : rooms_) {
+    roomList.push_back(room);
+  }
 
+  return roomList;
+}
+
+std::shared_ptr<Room> Lobby::getRoom(int room_id) const {
 
   return rooms_.at(room_id);
 }
 
-
-void Lobby::WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
+void Lobby::WriteAll(Session::pointer session, char* packet, uint16_t copySize,
                      bool isExceptMe) {
   for (const auto& client : clients_) {
     if (client->IsInRoom()) {
@@ -46,34 +50,41 @@ void Lobby::WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
     if ((isExceptMe && client == session)) {
       continue;
     }
-    client->write(protocolPtr);
+    client->write(packet, copySize);
   }
 }
 
-void Lobby::CreateRoom(Session::pointer session) {
-    if (rooms_.size() >= MAX_ROOM_SIZE) {
-        string message = "Room is full";
-        auto protocol = Protocol::create(ProtocolType::ALERT, message);
-        session->write(protocol);
-        return;
-    }
+void Lobby::WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
+                     bool isExceptMe) {}
 
-    auto room = Room::create(this, session);
-    rooms_[room->id_] = room;
+int Lobby::CreateRoom(Session::pointer session, string room_name) {
+  if (rooms_.size() >= MAX_ROOM_SIZE) {
+    return 2;
+  }
 
-    string message = "[ " + session->name_ + " ] " + " Create Room name_: " + std::to_string(room->id_);
-    auto protocol = Protocol::create(ProtocolType::ALERT, message);
+  auto room = Room::create(this, session, room_name);
+  rooms_[room->id_] = room;
 
-    WriteAll(protocol, session, false);
+  for (const auto& item : rooms_) {
+    std::cout << item.first << " " << item.second->name_ << std::endl;
+  }
 }
 
-void Lobby::EnterRoom(Session::pointer session, int room_id) {
-    if (!rooms_.contains(room_id)) {
-        string message = "Room name_: " + std::to_string(room_id) + " is not exist";
-        auto protocol = Protocol::create(ProtocolType::ALERT, message);
-        return session->write(protocol);
-    }
+int Lobby::EnterRoom(Session::pointer session, int room_id) {
+  if (!rooms_.contains(room_id)) {
+    return 4;
+  }
 
-    auto room = rooms_.at(room_id);
-    room->Enter(session);
+  auto room = rooms_.at(room_id);
+  room->Enter(session);
+}
+
+void Lobby::Broadcast(char* packet, uint16_t copySize, Session::pointer sender,
+                      bool isExceptRoom, bool isExceptMe) {
+  for (const auto& client : clients_) {
+    if (isExceptRoom && client->IsInRoom()) continue;
+    if (isExceptMe && client->id_ == sender->id_) continue;
+
+    client->write(packet, copySize);
+  }
 }

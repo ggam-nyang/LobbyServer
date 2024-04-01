@@ -10,52 +10,45 @@ int Room::ID_COUNTER = 0;
 
 Room::Room(Lobby* lobby) : lobby_(lobby) {}
 
-std::shared_ptr<Room> Room::create(Lobby* lobby, Session::pointer owner) {
+std::shared_ptr<Room> Room::create(Lobby* lobby, Session::pointer owner, std::string room_name) {
   ++ID_COUNTER;
   const std::shared_ptr<Room>& room = std::make_shared<Room>(lobby);
   room->owner_ = owner;
+  room->name_ = room_name;
   return room;
 }
 
 
 void Room::WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
-                    bool isExceptMe) {
-  for (const auto& client : clients_) {
-    if (isExceptMe && client == session) {
-      continue;
-    }
-    client->write(protocolPtr);
-  }
-}
+                    bool isExceptMe) {}
 
-void Room::Enter(Session::pointer session) {
+int Room::Enter(Session::pointer session) {
   if (clients_.size() >= MAX_CLIENT_SIZE) {
-    string message = "Room is full!";
-    auto protocol = Protocol::create(ProtocolType::ALERT, message);
-    session->write(protocol);
-    return;
+    return 3;
   }
 
   clients_.push_back(session);
   session->setRoom(shared_from_this());
-  string message = "[ " + session->name_ + " ] " + " Enter Room";
-  auto protocol = Protocol::create(ProtocolType::ALERT, message);
-  WriteAll(protocol, session, false);
+  return 1;
 }
 
-void Room::Leave(Session::pointer session) {
+int Room::Leave(Session::pointer session) {
   clients_.remove(session);
   session->setRoom(nullptr);  // FIXME: Room에서 Session->room을 설정하는 것이 불편..
 
-  string message = "[ " + session->name_ + " ] " + " Leave Room";
-  auto protocol = Protocol::create(ProtocolType::ALERT, message);
-  WriteAll(protocol, session);
-
-  //    if (clients_.empty()) {
-  //        lobby_->RemoveRoom(shared_from_this());
-  //    }
+  return 1;
 }
 
 bool Room::IsOwner(Session::pointer session) {
   return owner_ == session;
+}
+
+void Room::Broadcast(char* packet, uint16_t copySize, Session::pointer sender,
+                     bool isExceptMe) {
+    for (const auto& client : clients_) {
+        if (isExceptMe && client->id_ == sender->id_) {
+            continue;
+        }
+        client->write(packet, copySize);
+    }
 }

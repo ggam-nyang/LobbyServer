@@ -83,7 +83,7 @@ void Server::onAccept(const system::error_code& ec,
 }
 
 void Server::read(Session::pointer session) {
-  session->read();
+  session->Receive();
 }
 
 bool Server::isValidName(string& name) {
