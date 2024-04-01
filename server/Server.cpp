@@ -96,23 +96,10 @@ bool Server::isValidName(string& name) {
   return true;
 }
 
-void Server::writeAll(ProtocolPtr& protocolPtr, Session::pointer sender,
-                      bool isExceptMe) {
-  for (const auto& session : sessions_) {
-    if (isExceptMe) {
-      if (session->id_ == sender->id_) {
-        continue;
-      }
-    }
-    session->write(protocolPtr);
-  }
-}
-
 void Server::closeSession(Session::pointer session) {
   session->close();
 
-  ProtocolPtr temp = Protocol::create(ProtocolType::ALERT, session->name_ + " exit");
-  writeAll(temp, session, true);
+  // FIXME: 세션 종료 메세지?
 
   for (int i = 0; i < sessions_.size(); i++) {
     if (&sessions_[i]->socket_ == &session->socket_) {

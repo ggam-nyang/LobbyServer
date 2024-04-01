@@ -18,10 +18,6 @@ std::shared_ptr<Room> Room::create(Lobby* lobby, Session::pointer owner, std::st
   return room;
 }
 
-
-void Room::WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
-                    bool isExceptMe) {}
-
 int Room::Enter(Session::pointer session) {
   if (clients_.size() >= MAX_CLIENT_SIZE) {
     return 3;

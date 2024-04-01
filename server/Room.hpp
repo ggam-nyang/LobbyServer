@@ -22,8 +22,6 @@ class Room : public std::enable_shared_from_this<Room> {
   explicit Room(Lobby* lobby);
   static std::shared_ptr<Room> create(Lobby* lobby, Session::pointer owner, std::string room_name);
 
-  void WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
-                bool isExceptMe = true);
   void Broadcast(char* packet, uint16_t copySize, Session::pointer sender, bool isExceptMe = true);
   int Enter(Session::pointer session);
   int Leave(Session::pointer session);

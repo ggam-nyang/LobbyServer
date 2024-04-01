@@ -6,7 +6,7 @@
 #define LOBBYSERVER_CLIENTPACKETMANAGER_HPP
 
 #include <string>
-#include "../Protocol/Packet/Packet.hpp"
+#include "../Packet/Packet.hpp"
 #include "boost/asio.hpp"
 
 class Client;

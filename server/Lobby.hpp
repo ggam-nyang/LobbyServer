@@ -27,14 +27,11 @@ class Lobby : public std::enable_shared_from_this<Lobby> {
   void Leave(Session::pointer session);
   int CreateRoom(Session::pointer session, string room_name);
   int EnterRoom(Session::pointer session, int room_id);
-  void LeaveRoom(Session::pointer session);
   std::vector<string> GetRoomList() const;
   std::vector<std::shared_ptr<Room>> GetRooms() const;
   std::shared_ptr<Room> getRoom(int room_id) const;
 
   void Broadcast(char* packet, uint16_t copySize, Session::pointer sender, bool isExceptRoom = true, bool isExceptMe = true);
-  void WriteAll(ProtocolPtr& protocolPtr, Session::pointer session, bool isExceptMe = true);
-  void WriteAll(Session::pointer session, char* packet, uint16_t copySize, bool isExceptMe);
 };
 
 #endif  //LOBBYSERVER_LOBBY_HPP

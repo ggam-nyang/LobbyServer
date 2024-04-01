@@ -8,8 +8,7 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <memory>
-#include "../Protocol/Protocol.h"
-#include "../Protocol/Packet/Packet.hpp"
+#include "../Packet/Packet.hpp"
 #include "boost/asio.hpp"
 
 class Server;
@@ -49,14 +48,8 @@ class Session : public std::enable_shared_from_this<Session> {
 
   void Receive();
   void ReceiveHandle(const boost::system::error_code& ec, size_t size);
-  void write(ProtocolPtr& protocolPtr);
   void write(char* pBuf, uint16_t pSize);
   void onWrite(const boost::system::error_code& ec);
-  void WriteToServer(ProtocolPtr& protocolPtr, bool isExceptMe = true);
-  void WriteToLobby(ProtocolPtr& protocolPtr, std::shared_ptr<Lobby> lobby,
-                    bool isExceptMe = true);
-  void WriteToRoom(ProtocolPtr& protocolPtr, std::shared_ptr<Room> room,
-                   bool isExceptMe = true);
   void SetNameReq(SET_NAME_REQUEST_PACKET& packet);
   void EnterLobbyReq(LOBBY_ENTER_REQUEST_PACKET& packet);
   void CreateRoomReq(ROOM_CREATE_REQUEST_PACKET& packet);
@@ -64,10 +57,6 @@ class Session : public std::enable_shared_from_this<Session> {
   void EnterRoomReq(ROOM_ENTER_REQUEST_PACKET& packet);
   void LeaveRoomReq(ROOM_LEAVE_REQUEST_PACKET& packet);
   void ChatReq(CHAT_REQUEST_PACKET& packet);
-  void alert(string& body);
-  void RoomList(string& body);
-  void CreateRoom(string& body);
-  void EnterRoom(string& body);
   void BattleStart();
   void close();
   void setRoom(std::shared_ptr<Room> room);

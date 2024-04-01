@@ -10,8 +10,7 @@
 #include "boost/bind.hpp"
 #include "boost/thread.hpp"
 
-#include "../Protocol/Packet/Packet.hpp"
-#include "../Protocol/Protocol.h"
+#include "../Packet/Packet.hpp"
 #include "ClientPacketManager.hpp"
 
 using namespace boost;

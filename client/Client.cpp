@@ -3,8 +3,7 @@
 //
 
 #include "Client.h"
-#include "../Protocol/Packet/Packet.hpp"
-#include "../Protocol/Protocol.h"
+#include "../Packet/Packet.hpp"
 #include "ClientPacketManager.hpp"
 
 Client::Client(std::string ip_address, unsigned short port_num)

@@ -9,7 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "../Protocol/Packet/PacketManager.hpp"
+#include "../Packet/PacketManager.hpp"
 #include "Session.hpp"
 
 using namespace boost;
@@ -52,8 +52,6 @@ private:
     void read(Session::pointer session);
 
     bool isValidName(string& name);
-
-    void writeAll(ProtocolPtr& protocolPtr, Session::pointer session, bool isExceptMe = true);
 
 };
 

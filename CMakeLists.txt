@@ -21,24 +21,20 @@ add_executable(LobbyServer
         server/Server.cpp
         server/Server.h
         server/Session.cpp
-        Protocol/Protocol.cpp
-        Protocol/Protocol.h
         server/Lobby.cpp
         server/Lobby.hpp
         server/Room.cpp
         server/Room.hpp
-        Protocol/Packet/Packet.hpp
-        Protocol/Packet/PacketManager.cpp
-        Protocol/Packet/PacketManager.hpp
+        Packet/Packet.hpp
+        Packet/PacketManager.cpp
+        Packet/PacketManager.hpp
 )
 
 add_executable(LobbyClient
         client/clientMain.cpp
         client/Client.cpp
         client/Client.h
-        Protocol/Protocol.cpp
-        Protocol/Protocol.h
-        Protocol/Packet/Packet.hpp
+        Packet/Packet.hpp
         client/ClientPacketManager.cpp
         client/ClientPacketManager.hpp
 )

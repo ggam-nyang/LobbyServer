@@ -6,7 +6,7 @@
 #include <numeric>
 #include <ranges>
 #include <utility>
-#include "../Protocol/Packet/PacketManager.hpp"
+#include "../Packet/PacketManager.hpp"
 #include "Lobby.hpp"
 #include "Room.hpp"
 #include "Server.h"
@@ -54,8 +54,6 @@ void Session::ReceiveHandle(const boost::system::error_code& ec, size_t size) {
   Receive();
 }
 
-void Session::write(ProtocolPtr& protocolPtr) {}
-
 void Session::write(char* pBuf, uint16_t pSize) {
   socket_.async_write_some(boost::asio::buffer(pBuf, pSize),
                            [this, pBuf](const boost::system::error_code& ec,
@@ -68,20 +66,6 @@ void Session::onWrite(const boost::system::error_code& ec) {
               << "] async_write_some failed: " << ec.message() << std::endl;
     return;
   }
-}
-
-void Session::WriteToServer(ProtocolPtr& protocolPtr, bool isExceptMe) {
-  server_->writeAll(protocolPtr, shared_from_this(), isExceptMe);
-}
-
-void Session::WriteToLobby(ProtocolPtr& protocolPtr,
-                           std::shared_ptr<Lobby> lobby, bool isExceptMe) {
-  lobby->WriteAll(protocolPtr, shared_from_this(), isExceptMe);
-}
-
-void Session::WriteToRoom(ProtocolPtr& protocolPtr, std::shared_ptr<Room> room,
-                          bool isExceptMe) {
-  room->WriteAll(protocolPtr, shared_from_this(), isExceptMe);
 }
 
 void Session::SetNameReq(SET_NAME_REQUEST_PACKET& packet) {
@@ -213,18 +197,6 @@ void Session::ChatReq(CHAT_REQUEST_PACKET& packet) {
   }
 }
 
-void Session::alert(std::string& body) {
-  auto const& writeBuffer = body;
-  ProtocolPtr alert = Protocol::create(ProtocolType::ALERT, writeBuffer);
-  write(alert);
-}
-
-void Session::RoomList(string& body) {}
-
-void Session::CreateRoom(string& body) {}
-
-void Session::EnterRoom(string& body) {}
-
 void Session::close() {
   socket_.close();
   shared_from_this().reset();
@@ -241,12 +213,12 @@ bool Session::IsInRoom() const {
 void Session::BattleStart() {
   if (room_ == nullptr) {
     string errorMsg = "Not in room. Please enter room first.";
-    return alert(errorMsg);
+//    return alert(errorMsg);
   }
 
   if (!room_->IsOwner(shared_from_this())) {
     string errorMsg = "Only owner can start battle.";
-    return alert(errorMsg);
+//    return alert(errorMsg);
   }
 
   // Battle logic

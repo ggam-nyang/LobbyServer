@@ -41,22 +41,6 @@ std::shared_ptr<Room> Lobby::getRoom(int room_id) const {
   return rooms_.at(room_id);
 }
 
-void Lobby::WriteAll(Session::pointer session, char* packet, uint16_t copySize,
-                     bool isExceptMe) {
-  for (const auto& client : clients_) {
-    if (client->IsInRoom()) {
-      continue;
-    }
-    if ((isExceptMe && client == session)) {
-      continue;
-    }
-    client->write(packet, copySize);
-  }
-}
-
-void Lobby::WriteAll(ProtocolPtr& protocolPtr, Session::pointer session,
-                     bool isExceptMe) {}
-
 int Lobby::CreateRoom(Session::pointer session, string room_name) {
   if (rooms_.size() >= MAX_ROOM_SIZE) {
     return 2;
@@ -64,10 +48,7 @@ int Lobby::CreateRoom(Session::pointer session, string room_name) {
 
   auto room = Room::create(this, session, room_name);
   rooms_[room->id_] = room;
-
-  for (const auto& item : rooms_) {
-    std::cout << item.first << " " << item.second->name_ << std::endl;
-  }
+  return 1;
 }
 
 int Lobby::EnterRoom(Session::pointer session, int room_id) {
@@ -77,6 +58,8 @@ int Lobby::EnterRoom(Session::pointer session, int room_id) {
 
   auto room = rooms_.at(room_id);
   room->Enter(session);
+
+  return 1;
 }
 
 void Lobby::Broadcast(char* packet, uint16_t copySize, Session::pointer sender,

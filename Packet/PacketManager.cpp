@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <utility>
-#include "../../server/Session.hpp"
+#include "../server/Session.hpp"
 
 PACKET_ID PacketManager::ToPacketID(char* pBuf, uint16_t copySize) {
   auto const* pHeader = reinterpret_cast<PACKET_HEADER*>(pBuf);
