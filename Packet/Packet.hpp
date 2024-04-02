@@ -34,6 +34,9 @@ enum class PACKET_ID : uint16_t {
 
   CHAT_REQUEST = 215,
   CHAT_RESPONSE = 216,
+
+  ROOM_READY_REQUEST = 217,
+  ROOM_READY_RESPONSE = 218,
 };
 
 #pragma pack(push, 1)
@@ -196,6 +199,7 @@ enum class CHAT_TYPE : uint16_t {
 };
 
 const int MAX_CHAT_LEN = 100;
+
 struct CHAT_REQUEST_PACKET : public PACKET_HEADER {
   CHAT_REQUEST_PACKET() : PACKET_HEADER() {
     PacketId = static_cast<uint16_t>(PACKET_ID::CHAT_REQUEST);
@@ -215,6 +219,25 @@ struct CHAT_RESPONSE_PACKET : public PACKET_HEADER {
   char username[MAX_USERNAME_LEN]{};
   char chat[MAX_CHAT_LEN]{};
   CHAT_TYPE chatType{};
+};
+
+// 방 준비
+struct ROOM_READY_REQUEST_PACKET : public PACKET_HEADER {
+  ROOM_READY_REQUEST_PACKET() : PACKET_HEADER() {
+    PacketId = static_cast<uint16_t>(PACKET_ID::ROOM_READY_REQUEST);
+    PacketLength = sizeof(ROOM_READY_REQUEST_PACKET);
+  }
+
+  bool isReady{};
+};
+
+struct ROOM_READY_RESPONSE_PACKET : public PACKET_HEADER {
+  ROOM_READY_RESPONSE_PACKET() : PACKET_HEADER() {
+    PacketId = static_cast<uint16_t>(PACKET_ID::ROOM_READY_RESPONSE);
+    PacketLength = sizeof(ROOM_READY_RESPONSE_PACKET);
+  }
+
+  uint16_t result{};
 };
 
 #pragma pack(pop)  //위에 설정된 패킹설정이 사라짐

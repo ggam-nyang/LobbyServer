@@ -3,7 +3,6 @@
 //
 
 #include "Client.h"
-#include "../Packet/Packet.hpp"
 #include "ClientPacketManager.hpp"
 
 Client::Client(std::string ip_address, unsigned short port_num)
@@ -140,7 +139,8 @@ void Client::ResponseRoomList(ROOM_LIST_RESPONSE_PACKET packet) {
     cout << "방 목록을 출력합니다." << endl;
 
     for (int i = 0; i < packet.roomCount; ++i) {
-      cout << "id: " << packet.roomList[i].id  << " name: " << packet.roomList[i].name << endl;
+      cout << "id: " << packet.roomList[i].id
+           << " name: " << packet.roomList[i].name << endl;
     }
   }
 }
@@ -180,5 +180,22 @@ void Client::ResponseLeaveRoomBroadcast(ROOM_LEAVE_BROADCAST_PACKET packet) {
 }
 
 void Client::ResponseChat(CHAT_RESPONSE_PACKET packet) {
-  cout << "[" << packet.username << "] : "<< packet.chat << endl;
+  cout << "[" << packet.username << "] : " << packet.chat << endl;
+}
+
+void Client::ResponseReady(ROOM_READY_RESPONSE_PACKET packet) {
+  if (packet.result == 0) {
+    cout << "방에 입장하지 않았습니다." << endl;
+    return;
+  }
+
+  if (packet.result == 1) {
+    if (isReady_) {
+      cout << "준비가 해제 되었습니다." << endl;
+      isReady_ = false;
+    } else {
+        cout << "준비가 완료 되었습니다." << endl;
+        isReady_ = true;
+    }
+  }
 }

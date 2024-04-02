@@ -109,6 +109,16 @@ bool ClientPacketManager::MakePacket(char* pBuf, uint16_t& copySize,
     return true;
   }
 
+  if (order == ":ready") {
+    auto packet = ROOM_READY_REQUEST_PACKET();
+    packet.isReady = client_->isReady_;
+
+    copySize = packet.PacketLength;
+    memcpy(pBuf, &packet, copySize);
+
+    return true;
+  }
+
   cout << "유효하지 않은 명령입니다." << endl;
   return false;
 }
@@ -197,4 +207,10 @@ void ClientPacketManager::ReceivePacket(Client* client, char* pBuf,
     client->ResponseChat(*packet);
     return;
   }
+
+    if (packetId == PACKET_ID::ROOM_READY_RESPONSE) {
+        auto packet = reinterpret_cast<ROOM_READY_RESPONSE_PACKET*>(pBuf);
+        client->ResponseReady(*packet);
+        return;
+    }
 }

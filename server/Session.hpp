@@ -57,6 +57,7 @@ class Session : public std::enable_shared_from_this<Session> {
   void EnterRoomReq(ROOM_ENTER_REQUEST_PACKET& packet);
   void LeaveRoomReq(ROOM_LEAVE_REQUEST_PACKET& packet);
   void ChatReq(CHAT_REQUEST_PACKET& packet);
+  void ReadyReq(ROOM_READY_REQUEST_PACKET& packet);
   void BattleStart();
   void close();
   void setRoom(std::shared_ptr<Room> room);

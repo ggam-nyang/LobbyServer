@@ -46,8 +46,8 @@ void Session::ReceiveHandle(const boost::system::error_code& ec, size_t size) {
 
   server_->packetManager_.ReceivePacket(shared_from_this(), buffer_.data(),
                                         size);
-  std::cout << "[" << boost::this_thread::get_id() << "] " << buffer_.data()
-            << std::endl;
+//  std::cout << "[" << boost::this_thread::get_id() << "] " << static_cast<int>(state_)
+//            << std::endl;
 
   Receive();
 }
@@ -90,6 +90,7 @@ void Session::EnterLobbyReq(LOBBY_ENTER_REQUEST_PACKET& packet) {
   } else {
     response.result = 1;
     lobby_ = server_->lobbies_.begin()->second;  // FIXME: Lobby 여러개로 수정
+    state_ = UserState::LOBBY;
     lobby_->Enter(shared_from_this());
   }
 
@@ -160,6 +161,7 @@ void Session::LeaveRoomReq(ROOM_LEAVE_REQUEST_PACKET& packet) {
     response.result = 2;
   } else {
     response.result = 1;
+    state_ = UserState::LOBBY;
   }
 
   if (response.result == 1) {
@@ -195,12 +197,29 @@ void Session::ChatReq(CHAT_REQUEST_PACKET& packet) {
   }
 }
 
+void Session::ReadyReq(ROOM_READY_REQUEST_PACKET& packet) {
+  auto response = ROOM_READY_RESPONSE_PACKET();
+
+  if (state_ == UserState::ROOM) {
+    response.result = 1;
+    state_ = UserState::READY;
+  } else if (state_ == UserState::READY) {
+    response.result = 1;
+  } else {
+    response.result = 0;
+  }
+
+  write(reinterpret_cast<char*>(&response), response.PacketLength);
+}
+
 void Session::close() {
   socket_.close();
   shared_from_this().reset();
 }
 
 void Session::setRoom(std::shared_ptr<Room> room) {
+  if (room == nullptr) state_ = UserState::LOBBY;
+  else state_ = UserState::ROOM;
   room_ = std::move(room);
 }
 

@@ -56,8 +56,13 @@ void PacketManager::ReceivePacket(std::shared_ptr<Session> session, char* pBuf,
 
   if (packetId == PACKET_ID::CHAT_REQUEST) {
     auto packet = reinterpret_cast<CHAT_REQUEST_PACKET*>(pBuf);
-
     session->ChatReq(*packet);
+    return;
+  }
+
+  if (packetId == PACKET_ID::ROOM_READY_REQUEST) {
+    auto packet = reinterpret_cast<ROOM_READY_REQUEST_PACKET*>(pBuf);
+    session->ReadyReq(*packet);
     return;
   }
 }

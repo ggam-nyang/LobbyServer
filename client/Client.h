@@ -36,6 +36,7 @@ class Client {
  public:
   bool in_lobby_ = false;
   bool in_room_ = false;
+  bool isReady_ = false;
 
  public:
   Client(std::string ip_address, unsigned short port_num);
@@ -76,6 +77,8 @@ class Client {
   void ResponseLeaveRoomBroadcast(ROOM_LEAVE_BROADCAST_PACKET packet);
 
   void ResponseChat(CHAT_RESPONSE_PACKET packet);
+
+    void ResponseReady(ROOM_READY_RESPONSE_PACKET packet);
 };
 
 #endif  //BOOSTASIO_CLIENT_H
