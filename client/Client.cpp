@@ -9,7 +9,8 @@ Client::Client(std::string ip_address, unsigned short port_num)
     : endpoint_(asio::ip::address::from_string(ip_address), port_num),
       packetManager_(this),
       sock(io_context_, endpoint_.protocol()),
-      work_(new asio::io_service::work(io_context_)) {}
+      work_(new asio::io_service::work(io_context_)),
+      timer_(io_context_) {}
 
 void Client::Start() {
   for (int i = 0; i < 3; i++)
@@ -105,6 +106,23 @@ void Client::StopAll() {
   work_.reset();
 }
 
+void Client::Battle() {
+  // battle 시작
+  timer_.expires_from_now(std::chrono::seconds(1));
+  timer_.async_wait(
+      [this](const boost::system::error_code& ec) { BattleHandler(ec); });
+}
+
+void Client::BattleHandler(const system::error_code& ec) {
+  if (state_ != USER_STATE::BATTLE)
+    return;
+
+  packetManager_.SendAttackPacket(this, 1);
+  timer_.expires_from_now(std::chrono::seconds(1));
+  timer_.async_wait(
+      [this](const boost::system::error_code& ec) { BattleHandler(ec); });
+}
+
 void Client::ResponseSetName(SET_NAME_RESPONSE_PACKET packet) {
   if (packet.result == 0) {
     cout << "이미 사용중인 이름입니다." << endl;
@@ -118,7 +136,7 @@ void Client::ResponseEnterLobby(LOBBY_ENTER_RESPONSE_PACKET packet) {
     cout << "이미 로비에 입장했습니다." << endl;
   } else if (packet.result == 1) {
     cout << "로비에 입장했습니다." << endl;
-    in_lobby_ = true;
+    state_ = USER_STATE::LOBBY;
   }
 }
 
@@ -150,7 +168,7 @@ void Client::ResponseEnterRoom(ROOM_ENTER_RESPONSE_PACKET packet) {
     cout << "이미 방에 입장한 상태입니다." << endl;
   } else if (packet.result == 1) {
     cout << "방에 입장했습니다." << endl;
-    in_room_ = true;
+    state_ = USER_STATE::ROOM;
   } else if (packet.result == 2) {
     cout << "로비에 입장하지 않았습니다." << endl;
   } else if (packet.result == 3) {
@@ -169,7 +187,7 @@ void Client::ResponseLeaveRoom(ROOM_LEAVE_RESPONSE_PACKET packet) {
     cout << "방에 입장하지 않았습니다." << endl;
   } else if (packet.result == 1) {
     cout << "방에서 나갔습니다." << endl;
-    in_room_ = false;
+    state_ = USER_STATE::LOBBY;
   } else if (packet.result == 2) {
     cout << "로비에 입장하지 않았습니다." << endl;
   }
@@ -190,12 +208,50 @@ void Client::ResponseReady(ROOM_READY_RESPONSE_PACKET packet) {
   }
 
   if (packet.result == 1) {
-    if (isReady_) {
+    if (state_ == USER_STATE::READY) {
       cout << "준비가 해제 되었습니다." << endl;
-      isReady_ = false;
-    } else {
-        cout << "준비가 완료 되었습니다." << endl;
-        isReady_ = true;
+      state_ = USER_STATE::ROOM;
+    } else if (state_ == USER_STATE::ROOM) {
+      cout << "준비가 완료 되었습니다." << endl;
+      state_ = USER_STATE::READY;
     }
   }
+}
+
+void Client::ResponseBattleStart(BATTLE_START_RESPONSE_PACKET packet) {
+  if (packet.result == 0) {
+    cout << "방에 입장하지 않았습니다." << endl;
+  } else if (packet.result == 1) {
+    cout << "배틀이 시작되었습니다." << endl;
+    state_ = USER_STATE::BATTLE;
+    // battle 시작
+    Battle();
+  } else if (packet.result == 2) {
+    cout << "방장이 아닙니다." << endl;
+  } else if (packet.result == 3) {
+    cout << "준비가 되지 않아 배틀을 시작할 수 없습니다." << endl;
+  } else if (packet.result == 4) {
+    cout << "인원이 1명인 경우에는 배틀을 시작할 수 없습니다." << endl;
+  }
+}
+
+void Client::ResponseAttack(ATTACK_RESPONSE_PACKET packet) {
+  if (packet.result == 0) {
+    cout << "배틀 중이 아닙니다." << endl;
+  } else if (packet.result == 1) {
+    for (int i = 0; i < 2; ++i) {
+      cout << "Player " << packet.battleInfos[i].username
+           << " MaxHP: " << packet.battleInfos[i].maxHp
+           << " Hp: " << packet.battleInfos[i].hp << endl;
+    }
+  }
+}
+
+void Client::RequestAttack() {
+  if (state_ != USER_STATE::BATTLE) {
+    cout << "배틀 중이 아닙니다." << endl;
+    return;
+  }
+
+  packetManager_.SendAttackPacket(this, 1);
 }

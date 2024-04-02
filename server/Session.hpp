@@ -14,21 +14,23 @@
 class Server;
 class Lobby;
 class Room;
+class BattleInfo;
 
 using std::string;
 
 // FIXME: User 객체와 분리..?
-enum class UserState {
-  NONE,
-  LOBBY,
-  ROOM,
-  READY,
-  BATTLE,
+enum class USER_STATE : uint16_t {
+  NONE = 0,
+  LOBBY = 1,
+  ROOM = 2,
+  READY = 3,
+  BATTLE = 4,
 };
 
 class Session : public std::enable_shared_from_this<Session> {
   static int ID_COUNTER;
-  UserState state_ = UserState::NONE;
+  USER_STATE state_ = USER_STATE::NONE;
+
 
  public:
   using pointer = std::shared_ptr<Session>;
@@ -40,6 +42,7 @@ class Session : public std::enable_shared_from_this<Session> {
   string name_;
   string readBuffer;
   std::array<char, 240> buffer_;
+  std::shared_ptr<BattleInfo> battleInfo_;
 
   static pointer create(boost::asio::io_context& io_context, Server* server);
   // FIXME: private으로 하고 싶은데, 그러면 create에서 접근이 안됨
@@ -58,10 +61,12 @@ class Session : public std::enable_shared_from_this<Session> {
   void LeaveRoomReq(ROOM_LEAVE_REQUEST_PACKET& packet);
   void ChatReq(CHAT_REQUEST_PACKET& packet);
   void ReadyReq(ROOM_READY_REQUEST_PACKET& packet);
-  void BattleStart();
+  void BattleStartReq(BATTLE_START_REQUEST_PACKET& packet);
+  void AttackReq(ATTACK_REQUEST_PACKET& packet);
   void close();
   void setRoom(std::shared_ptr<Room> room);
   bool IsInRoom() const;
+  bool IsReady() const;
 
  private:
   std::shared_ptr<Lobby> lobby_;

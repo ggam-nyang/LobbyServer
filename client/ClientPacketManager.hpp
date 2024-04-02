@@ -29,6 +29,8 @@ class ClientPacketManager {
   void SendHandle(const boost::system::error_code& ec, const char* packet);
 
   bool SendPacket(Client* client, const std::string& input);
+//  bool SendPacket(Client* client, PACKET_ID packetID); // FIXME: ATTACK 같은 경우는 어떻게 패킷 처리를 할지..
+  bool SendAttackPacket(Client* client, const uint16_t targetId);
 
 //  std::vector<char []> buffer_;
 };

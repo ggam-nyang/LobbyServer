@@ -28,6 +28,10 @@ add_executable(LobbyServer
         Packet/Packet.hpp
         Packet/PacketManager.cpp
         Packet/PacketManager.hpp
+        BattleInfo/BattleInfo.cpp
+        BattleInfo/BattleInfo.hpp
+        BattleInfo/BattleManager.cpp
+        BattleInfo/BattleManager.hpp
 )
 
 add_executable(LobbyClient
@@ -37,6 +41,10 @@ add_executable(LobbyClient
         Packet/Packet.hpp
         client/ClientPacketManager.cpp
         client/ClientPacketManager.hpp
+        BattleInfo/BattleInfo.cpp
+        BattleInfo/BattleInfo.hpp
+        BattleInfo/BattleManager.cpp
+        BattleInfo/BattleManager.hpp
 )
 
 target_link_libraries(LobbyServer ${Boost_LIBRARIES})

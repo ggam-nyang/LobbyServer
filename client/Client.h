@@ -18,6 +18,14 @@ using boost::asio::ip::tcp;
 using std::cout;
 using std::endl;
 
+enum class USER_STATE : uint16_t {
+  NONE = 0,
+  LOBBY = 1,
+  ROOM = 2,
+  READY = 3,
+  BATTLE = 4,
+};
+
 class ClientPacketManager;
 
 class Client {
@@ -32,11 +40,10 @@ class Client {
   std::string readBuffer_;
   std::array<char, 1000> buffer_;
   std::mutex lock_;
+  boost::asio::steady_timer timer_;
 
  public:
-  bool in_lobby_ = false;
-  bool in_room_ = false;
-  bool isReady_ = false;
+  USER_STATE state_ = USER_STATE::NONE;
 
  public:
   Client(std::string ip_address, unsigned short port_num);
@@ -60,6 +67,10 @@ class Client {
 
   void StopAll();
 
+  void Battle();
+
+  void BattleHandler(const system::error_code& ec);
+
   void ResponseSetName(SET_NAME_RESPONSE_PACKET packet);
 
   void ResponseEnterLobby(LOBBY_ENTER_RESPONSE_PACKET packet);
@@ -78,7 +89,13 @@ class Client {
 
   void ResponseChat(CHAT_RESPONSE_PACKET packet);
 
-    void ResponseReady(ROOM_READY_RESPONSE_PACKET packet);
+  void ResponseReady(ROOM_READY_RESPONSE_PACKET packet);
+
+  void ResponseBattleStart(BATTLE_START_RESPONSE_PACKET packet);
+
+  void ResponseAttack(ATTACK_RESPONSE_PACKET packet);
+
+  void RequestAttack();
 };
 
 #endif  //BOOSTASIO_CLIENT_H

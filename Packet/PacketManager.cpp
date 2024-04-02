@@ -65,4 +65,16 @@ void PacketManager::ReceivePacket(std::shared_ptr<Session> session, char* pBuf,
     session->ReadyReq(*packet);
     return;
   }
+
+  if (packetId == PACKET_ID::BATTLE_START_REQUEST) {
+    auto packet = reinterpret_cast<BATTLE_START_REQUEST_PACKET*>(pBuf);
+    session->BattleStartReq(*packet);
+    return;
+  }
+
+  if (packetId == PACKET_ID::ATTACK_REQUEST) {
+    auto packet = reinterpret_cast<ATTACK_REQUEST_PACKET*>(pBuf);
+    session->AttackReq(*packet);
+    return;
+  }
 }

@@ -17,13 +17,13 @@ bool ClientPacketManager::MakePacket(char* pBuf, uint16_t& copySize,
                                      std::string input) {
   if (input[0] != ':') {
     auto packet = CHAT_REQUEST_PACKET();
-    if (client_->in_room_) {
-      packet.chatType = CHAT_TYPE::ROOM;
-    } else if (client_->in_lobby_) {
+    if (client_->state_ == USER_STATE::LOBBY) {
       packet.chatType = CHAT_TYPE::LOBBY;
-    } else {
+    } else if (client_->state_ == USER_STATE::NONE) {
       cout << "채팅은 로비나 방에 입장한 후에 가능합니다." << endl;
       return false;
+    } else {
+      packet.chatType = CHAT_TYPE::ROOM;
     }
 
     copySize = packet.PacketLength;
@@ -111,7 +111,15 @@ bool ClientPacketManager::MakePacket(char* pBuf, uint16_t& copySize,
 
   if (order == ":ready") {
     auto packet = ROOM_READY_REQUEST_PACKET();
-    packet.isReady = client_->isReady_;
+
+    copySize = packet.PacketLength;
+    memcpy(pBuf, &packet, copySize);
+
+    return true;
+  }
+
+  if (order == ":battle_start") {
+    auto packet = BATTLE_START_REQUEST_PACKET();
 
     copySize = packet.PacketLength;
     memcpy(pBuf, &packet, copySize);
@@ -127,10 +135,17 @@ bool ClientPacketManager::SendPacket(Client* client, const std::string& input) {
   char packet[MAX_PACKET_SIZE];  // FIXME: vector 등으로 메모리 관리..?
   uint16_t copySize{};
 
-  if (!MakePacket(packet, copySize, input)) {
-  }
+  if (!MakePacket(packet, copySize, input)) {}
 
   Send(packet, copySize);
+}
+
+bool ClientPacketManager::SendAttackPacket(Client* client,
+                                          const uint16_t targetId) {
+  auto packet = ATTACK_REQUEST_PACKET();
+  packet.targetId = targetId;
+
+  Send(reinterpret_cast<char*>(&packet), packet.PacketLength);
 }
 
 void ClientPacketManager::Send(const char* packet, const uint16_t copySize) {
@@ -208,9 +223,21 @@ void ClientPacketManager::ReceivePacket(Client* client, char* pBuf,
     return;
   }
 
-    if (packetId == PACKET_ID::ROOM_READY_RESPONSE) {
-        auto packet = reinterpret_cast<ROOM_READY_RESPONSE_PACKET*>(pBuf);
-        client->ResponseReady(*packet);
-        return;
-    }
+  if (packetId == PACKET_ID::ROOM_READY_RESPONSE) {
+    auto packet = reinterpret_cast<ROOM_READY_RESPONSE_PACKET*>(pBuf);
+    client->ResponseReady(*packet);
+    return;
+  }
+
+  if (packetId == PACKET_ID::BATTLE_START_RESPONSE) {
+    auto packet = reinterpret_cast<BATTLE_START_RESPONSE_PACKET*>(pBuf);
+    client->ResponseBattleStart(*packet);
+    return;
+  }
+
+  if (packetId == PACKET_ID::ATTACK_RESPONSE) {
+    auto packet = reinterpret_cast<ATTACK_RESPONSE_PACKET*>(pBuf);
+    client->ResponseAttack(*packet);
+    return;
+  }
 }

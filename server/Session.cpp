@@ -4,6 +4,7 @@
 
 #include "Session.hpp"
 #include <utility>
+#include "../BattleInfo/BattleInfo.hpp"
 #include "../Packet/PacketManager.hpp"
 #include "Lobby.hpp"
 #include "Room.hpp"
@@ -20,7 +21,7 @@ Session::pointer Session::create(boost::asio::io_context& io_context,
 }
 
 Session::Session(boost::asio::io_context& io_context, Server* server)
-    : socket_(io_context), server_(server) {}
+    : socket_(io_context), server_(server), battleInfo_() {}
 
 void Session::Receive() {
   // 비동기로 구현 후, 동작 확인
@@ -46,8 +47,6 @@ void Session::ReceiveHandle(const boost::system::error_code& ec, size_t size) {
 
   server_->packetManager_.ReceivePacket(shared_from_this(), buffer_.data(),
                                         size);
-//  std::cout << "[" << boost::this_thread::get_id() << "] " << static_cast<int>(state_)
-//            << std::endl;
 
   Receive();
 }
@@ -90,7 +89,7 @@ void Session::EnterLobbyReq(LOBBY_ENTER_REQUEST_PACKET& packet) {
   } else {
     response.result = 1;
     lobby_ = server_->lobbies_.begin()->second;  // FIXME: Lobby 여러개로 수정
-    state_ = UserState::LOBBY;
+    state_ = USER_STATE::LOBBY;
     lobby_->Enter(shared_from_this());
   }
 
@@ -161,7 +160,7 @@ void Session::LeaveRoomReq(ROOM_LEAVE_REQUEST_PACKET& packet) {
     response.result = 2;
   } else {
     response.result = 1;
-    state_ = UserState::LOBBY;
+    state_ = USER_STATE::LOBBY;
   }
 
   if (response.result == 1) {
@@ -200,11 +199,12 @@ void Session::ChatReq(CHAT_REQUEST_PACKET& packet) {
 void Session::ReadyReq(ROOM_READY_REQUEST_PACKET& packet) {
   auto response = ROOM_READY_RESPONSE_PACKET();
 
-  if (state_ == UserState::ROOM) {
+  if (state_ == USER_STATE::ROOM) {
     response.result = 1;
-    state_ = UserState::READY;
-  } else if (state_ == UserState::READY) {
+    state_ = USER_STATE::READY;
+  } else if (state_ == USER_STATE::READY) {
     response.result = 1;
+    state_ = USER_STATE::ROOM;
   } else {
     response.result = 0;
   }
@@ -218,8 +218,10 @@ void Session::close() {
 }
 
 void Session::setRoom(std::shared_ptr<Room> room) {
-  if (room == nullptr) state_ = UserState::LOBBY;
-  else state_ = UserState::ROOM;
+  if (room == nullptr)
+    state_ = USER_STATE::LOBBY;
+  else
+    state_ = USER_STATE::ROOM;
   room_ = std::move(room);
 }
 
@@ -227,19 +229,51 @@ bool Session::IsInRoom() const {
   return room_ != nullptr;
 }
 
-void Session::BattleStart() {
-  if (room_ == nullptr) {
-    string errorMsg = "Not in room. Please enter room first.";
-//    return alert(errorMsg);
+bool Session::IsReady() const {
+  return state_ == USER_STATE::READY;
+}
+
+void Session::BattleStartReq(BATTLE_START_REQUEST_PACKET& packet) {
+  auto response = BATTLE_START_RESPONSE_PACKET();
+
+  if (!IsInRoom()) {
+    response.result = 0;
+  } else if (!room_->IsOwner(shared_from_this())) {
+    response.result = 2;
+  } else if (room_->GetClientSize() == 1) {
+    response.result = 4;
+  } else {
+    if (room_->IsReady()) {
+      response.result = 1;
+      state_ = USER_STATE::BATTLE;
+      room_->Broadcast(reinterpret_cast<char*>(&response),
+                       response.PacketLength, shared_from_this(), false);
+    } else {
+      response.result = 3;
+      room_->Broadcast(reinterpret_cast<char*>(&response),
+                       response.PacketLength, shared_from_this(),
+                       &Session::IsReady, false);
+    }
+  }
+}
+
+void Session::AttackReq(ATTACK_REQUEST_PACKET& packet) {
+  auto response = ATTACK_RESPONSE_PACKET();
+
+  if (state_ != USER_STATE::BATTLE)
+    response.result = 0;
+
+  response.result = 1;
+  room_->Attack(shared_from_this());
+  auto clients = room_->GetClients();
+
+  for (int i = 0; i < clients.size(); ++i) {
+    response.battleInfos[i] =
+        BATTLE_INFO{clients[i]->name_,
+                    static_cast<uint16_t>(clients[i]->battleInfo_->max_hp_),
+                    static_cast<uint16_t>(clients[i]->battleInfo_->hp_)};
   }
 
-  if (!room_->IsOwner(shared_from_this())) {
-    string errorMsg = "Only owner can start battle.";
-//    return alert(errorMsg);
-  }
-
-  // Battle logic
-  // 배틀을 시작합니다 + 배틀을 시작하라고 알려야 함 client에게
-  // client도 동일한 Packet 관리가 필요해보임...
-  // Packet을 빨리... 바꿔볼까..?
+  room_->Broadcast(reinterpret_cast<char*>(&response), response.PacketLength,
+                   shared_from_this(), false);
 }

@@ -37,6 +37,13 @@ enum class PACKET_ID : uint16_t {
 
   ROOM_READY_REQUEST = 217,
   ROOM_READY_RESPONSE = 218,
+
+  BATTLE_START_REQUEST = 219,
+  BATTLE_START_RESPONSE = 220,
+
+  ATTACK_REQUEST = 221,
+  ATTACK_RESPONSE = 222,
+
 };
 
 #pragma pack(push, 1)
@@ -227,8 +234,6 @@ struct ROOM_READY_REQUEST_PACKET : public PACKET_HEADER {
     PacketId = static_cast<uint16_t>(PACKET_ID::ROOM_READY_REQUEST);
     PacketLength = sizeof(ROOM_READY_REQUEST_PACKET);
   }
-
-  bool isReady{};
 };
 
 struct ROOM_READY_RESPONSE_PACKET : public PACKET_HEADER {
@@ -237,6 +242,49 @@ struct ROOM_READY_RESPONSE_PACKET : public PACKET_HEADER {
     PacketLength = sizeof(ROOM_READY_RESPONSE_PACKET);
   }
 
+  uint16_t result{};
+};
+
+// 전투 시작
+struct BATTLE_START_REQUEST_PACKET : public PACKET_HEADER {
+  BATTLE_START_REQUEST_PACKET() : PACKET_HEADER() {
+    PacketId = static_cast<uint16_t>(PACKET_ID::BATTLE_START_REQUEST);
+    PacketLength = sizeof(BATTLE_START_REQUEST_PACKET);
+  }
+};
+
+// 0: 방이 아님, 1: 성공, 2: 방장이 아님, 3: 준비 안됨 4: 인원이 1명인 경우
+struct BATTLE_START_RESPONSE_PACKET : public PACKET_HEADER {
+  BATTLE_START_RESPONSE_PACKET() : PACKET_HEADER() {
+    PacketId = static_cast<uint16_t>(PACKET_ID::BATTLE_START_RESPONSE);
+    PacketLength = sizeof(BATTLE_START_RESPONSE_PACKET);
+  }
+
+  uint16_t result{};
+};
+
+struct ATTACK_REQUEST_PACKET : public PACKET_HEADER {
+  ATTACK_REQUEST_PACKET() : PACKET_HEADER() {
+    PacketId = static_cast<uint16_t>(PACKET_ID::ATTACK_REQUEST);
+    PacketLength = sizeof(ATTACK_REQUEST_PACKET);
+  }
+
+  uint16_t targetId{};
+};
+
+struct BATTLE_INFO {
+  std::string username{};
+  uint16_t maxHp{};
+  uint16_t hp{};
+};
+
+struct ATTACK_RESPONSE_PACKET : public PACKET_HEADER {
+  ATTACK_RESPONSE_PACKET() : PACKET_HEADER() {
+    PacketId = static_cast<uint16_t>(PACKET_ID::ATTACK_RESPONSE);
+    PacketLength = sizeof(ATTACK_RESPONSE_PACKET);
+  }
+
+  BATTLE_INFO battleInfos[2]{}; // FIXME: 2명만 전투 가능
   uint16_t result{};
 };
 
