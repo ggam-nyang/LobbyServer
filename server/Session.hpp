@@ -28,7 +28,7 @@ enum class UserState {
 
 class Session : public std::enable_shared_from_this<Session> {
   static int ID_COUNTER;
-  UserState state_ = UserState::NONE; // 상태 관리를... 더 좋은 방법은 없을까
+  UserState state_ = UserState::NONE;
 
  public:
   using pointer = std::shared_ptr<Session>;

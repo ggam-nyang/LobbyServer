@@ -4,6 +4,7 @@
 
 #include "Room.hpp"
 #include <iostream>
+#include <utility>
 #include "Lobby.hpp"
 
 int Room::ID_COUNTER = 0;
@@ -13,8 +14,8 @@ Room::Room(Lobby* lobby) : lobby_(lobby) {}
 std::shared_ptr<Room> Room::create(Lobby* lobby, Session::pointer owner, std::string room_name) {
   ++ID_COUNTER;
   const std::shared_ptr<Room>& room = std::make_shared<Room>(lobby);
-  room->owner_ = owner;
-  room->name_ = room_name;
+  room->owner_ = std::move(owner);
+  room->name_ = std::move(room_name);
   return room;
 }
 
@@ -36,7 +37,7 @@ int Room::Leave(Session::pointer session) {
 }
 
 bool Room::IsOwner(Session::pointer session) {
-  return owner_ == session;
+  return owner_->id_ == session->id_;
 }
 
 void Room::Broadcast(char* packet, uint16_t copySize, Session::pointer sender,

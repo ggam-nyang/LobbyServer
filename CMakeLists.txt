@@ -41,3 +41,4 @@ add_executable(LobbyClient
 
 target_link_libraries(LobbyServer ${Boost_LIBRARIES})
 target_link_libraries(LobbyClient ${Boost_LIBRARIES})
+add_executable(test temp.cpp)

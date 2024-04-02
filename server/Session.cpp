@@ -3,8 +3,6 @@
 //
 
 #include "Session.hpp"
-#include <numeric>
-#include <ranges>
 #include <utility>
 #include "../Packet/PacketManager.hpp"
 #include "Lobby.hpp"
