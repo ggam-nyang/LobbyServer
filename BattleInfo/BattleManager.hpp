@@ -16,6 +16,7 @@ class BattleManager {
     ~BattleManager() = default;
 
     void Attack(std::shared_ptr<BattleInfo> attacker, std::shared_ptr<BattleInfo> defender);
+    void Attack(std::shared_ptr<Session> attacker, std::shared_ptr<Session> defender);
 //    void Move();
 };
 

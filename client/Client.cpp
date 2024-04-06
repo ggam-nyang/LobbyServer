@@ -10,6 +10,7 @@ Client::Client(std::string ip_address, unsigned short port_num)
       packetManager_(this),
       sock(io_context_, endpoint_.protocol()),
       work_(new asio::io_service::work(io_context_)),
+      input_(io_context_, STDIN_FILENO),
       timer_(io_context_) {}
 
 void Client::Start() {
@@ -19,7 +20,6 @@ void Client::Start() {
   // thread 잘 만들어질때까지 잠시 기다리는 부분
   this_thread::sleep_for(chrono::milliseconds(100));
 
-  // io_context_.post(bind(&Client::TryConnect, this));
   io_context_.post([this]() { TryConnect(); });
 
   thread_group_.join_all();
@@ -60,8 +60,10 @@ void Client::OnConnect(const system::error_code& ec) {
 }
 
 void Client::Send() {
+  if (!is_get_input_) {
+    return;
+  }
   getline(std::cin, writeBuffer_);
-
   packetManager_.SendPacket(this, writeBuffer_);
 }
 
@@ -79,7 +81,7 @@ void Client::SendHandle(const system::error_code& ec, const char* packet) {
     return;
   }
 
-  Send();
+  io_context_.post([this]() { Send(); });
 }
 
 void Client::ReceiveHandle(const system::error_code& ec, size_t size) {
@@ -95,8 +97,6 @@ void Client::ReceiveHandle(const system::error_code& ec, size_t size) {
     return;
   }
 
-  readBuffer_ = std::string(buffer_.data(), size);
-
   packetManager_.ReceivePacket(this, buffer_.data(), size);
   Receive();
 }
@@ -107,17 +107,23 @@ void Client::StopAll() {
 }
 
 void Client::Battle() {
-  // battle 시작
+  if (state_ != USER_STATE::BATTLE)
+    return;
+  is_get_input_ = false;
+
   timer_.expires_from_now(std::chrono::seconds(1));
   timer_.async_wait(
       [this](const boost::system::error_code& ec) { BattleHandler(ec); });
 }
 
 void Client::BattleHandler(const system::error_code& ec) {
-  if (state_ != USER_STATE::BATTLE)
+  if (state_ != USER_STATE::BATTLE) {
+    io_context_.post([this]() { Send(); });
     return;
+  }
 
   packetManager_.SendAttackPacket(this, 1);
+
   timer_.expires_from_now(std::chrono::seconds(1));
   timer_.async_wait(
       [this](const boost::system::error_code& ec) { BattleHandler(ec); });
@@ -224,7 +230,6 @@ void Client::ResponseBattleStart(BATTLE_START_RESPONSE_PACKET packet) {
   } else if (packet.result == 1) {
     cout << "배틀이 시작되었습니다." << endl;
     state_ = USER_STATE::BATTLE;
-    // battle 시작
     Battle();
   } else if (packet.result == 2) {
     cout << "방장이 아닙니다." << endl;
@@ -237,7 +242,7 @@ void Client::ResponseBattleStart(BATTLE_START_RESPONSE_PACKET packet) {
 
 void Client::ResponseAttack(ATTACK_RESPONSE_PACKET packet) {
   if (packet.result == 0) {
-    cout << "배틀 중이 아닙니다." << endl;
+    cout << "배틀 중이 아닐 땐, 공격 요청할 수 없습니다." << endl;
   } else if (packet.result == 1) {
     for (int i = 0; i < 2; ++i) {
       cout << "Player " << packet.battleInfos[i].username
@@ -247,11 +252,21 @@ void Client::ResponseAttack(ATTACK_RESPONSE_PACKET packet) {
   }
 }
 
-void Client::RequestAttack() {
-  if (state_ != USER_STATE::BATTLE) {
-    cout << "배틀 중이 아닙니다." << endl;
+void Client::ResponseBattleInfo(BATTLE_INFO_PACKET packet) {
+  if (packet.result == 0) {
+    cout << "배틀 중이 아닐 땐, 공격 요청할 수 없습니다." << endl;
     return;
   }
 
-  packetManager_.SendAttackPacket(this, 1);
+  for (int i = 0; i < 2; ++i) {
+    cout << "Player " << packet.battleInfos[i].username
+         << " MaxHP: " << packet.battleInfos[i].maxHp
+         << " Hp: " << packet.battleInfos[i].hp << endl;
+  }
+
+  if (packet.result == 2 || state_ != USER_STATE::BATTLE) {
+    cout << "배틀이 종료되었습니다." << endl;
+    state_ = USER_STATE::ROOM;
+    is_get_input_ = true;
+  }
 }

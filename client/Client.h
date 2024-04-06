@@ -37,10 +37,11 @@ class Client {
   shared_ptr<boost::asio::io_service::work> work_;
   thread_group thread_group_;
   std::string writeBuffer_;
-  std::string readBuffer_;
   std::array<char, 1000> buffer_;
+  boost::asio::posix::stream_descriptor input_;
   std::mutex lock_;
   boost::asio::steady_timer timer_;
+  std::atomic<bool> is_get_input_ = true;
 
  public:
   USER_STATE state_ = USER_STATE::NONE;
@@ -60,6 +61,8 @@ class Client {
   void Send();
 
   void Receive();
+
+  void InputHandler(const system::error_code& error, std::size_t bytes_transferred);
 
   void SendHandle(const system::error_code& ec, const char* packet);
 
@@ -95,7 +98,7 @@ class Client {
 
   void ResponseAttack(ATTACK_RESPONSE_PACKET packet);
 
-  void RequestAttack();
+  void ResponseBattleInfo(BATTLE_INFO_PACKET packet);
 };
 
 #endif  //BOOSTASIO_CLIENT_H

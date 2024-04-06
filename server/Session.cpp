@@ -14,14 +14,15 @@ int Session::ID_COUNTER = 0;
 
 Session::pointer Session::create(boost::asio::io_context& io_context,
                                  Server* server) {
-  const Session::pointer pointer =
-      std::make_shared<Session>(io_context, server);
+  const auto pointer = std::make_shared<Session>(io_context, server);
   ++ID_COUNTER;
   return pointer;
 }
 
 Session::Session(boost::asio::io_context& io_context, Server* server)
-    : socket_(io_context), server_(server), battleInfo_() {}
+    : socket_(io_context),
+      server_(server),
+      battleInfo_(std::make_shared<BattleInfo>()) {}
 
 void Session::Receive() {
   // 비동기로 구현 후, 동작 확인
@@ -245,7 +246,7 @@ void Session::BattleStartReq(BATTLE_START_REQUEST_PACKET& packet) {
   } else {
     if (room_->IsReady()) {
       response.result = 1;
-      state_ = USER_STATE::BATTLE;
+      room_->BattleStart();
       room_->Broadcast(reinterpret_cast<char*>(&response),
                        response.PacketLength, shared_from_this(), false);
     } else {
@@ -258,22 +259,32 @@ void Session::BattleStartReq(BATTLE_START_REQUEST_PACKET& packet) {
 }
 
 void Session::AttackReq(ATTACK_REQUEST_PACKET& packet) {
-  auto response = ATTACK_RESPONSE_PACKET();
+  auto response = BATTLE_INFO_PACKET();
 
   if (state_ != USER_STATE::BATTLE)
     response.result = 0;
+  else {
+    response.result = 1;
+    room_->Attack(shared_from_this());
 
-  response.result = 1;
-  room_->Attack(shared_from_this());
-  auto clients = room_->GetClients();
+    auto clients = room_->GetClients();
 
-  for (int i = 0; i < clients.size(); ++i) {
-    response.battleInfos[i] =
-        BATTLE_INFO{clients[i]->name_,
-                    static_cast<uint16_t>(clients[i]->battleInfo_->max_hp_),
-                    static_cast<uint16_t>(clients[i]->battleInfo_->hp_)};
+    int i = 0;
+    for (const auto& client : clients) {
+      response.battleInfos[i] = BATTLE_INFO{
+          client->name_, static_cast<uint16_t>(client->battleInfo_->max_hp_),
+          static_cast<uint16_t>(client->battleInfo_->hp_)};
+      ++i;
+    }
+
+    if (room_->IsBattleEnd()) {
+      response.result = 2;
+      room_->BattleEnd();
+      room_->Broadcast(reinterpret_cast<char*>(&response),
+                       response.PacketLength, shared_from_this(), false);
+      return;
+    }
   }
 
-  room_->Broadcast(reinterpret_cast<char*>(&response), response.PacketLength,
-                   shared_from_this(), false);
+  write(reinterpret_cast<char*>(&response), response.PacketLength);
 }

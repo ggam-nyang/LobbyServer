@@ -25,13 +25,11 @@ enum class USER_STATE : uint16_t {
   ROOM = 2,
   READY = 3,
   BATTLE = 4,
+  DIED = 5,
 };
 
 class Session : public std::enable_shared_from_this<Session> {
   static int ID_COUNTER;
-  USER_STATE state_ = USER_STATE::NONE;
-
-
  public:
   using pointer = std::shared_ptr<Session>;
 
@@ -40,6 +38,8 @@ class Session : public std::enable_shared_from_this<Session> {
 
   const int id_ = ID_COUNTER;
   string name_;
+  USER_STATE state_ = USER_STATE::NONE;
+
   string readBuffer;
   std::array<char, 240> buffer_;
   std::shared_ptr<BattleInfo> battleInfo_;
