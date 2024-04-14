@@ -12,7 +12,7 @@ class BattleManager;
 
 class Room : public std::enable_shared_from_this<Room> {
   Lobby* lobby_;
-  std::vector<Session::pointer> clients_;
+  std::list<Session::pointer> clients_;
   Session::pointer owner_;
   static int ID_COUNTER;
   static const int MAX_CLIENT_SIZE = 2; // FIXME: 임시로 2명으로 설정
@@ -27,14 +27,17 @@ class Room : public std::enable_shared_from_this<Room> {
   void Broadcast(char* packet, uint16_t copySize, Session::pointer sender, bool isExceptMe = true);
   // overloading bool function type
   void Broadcast(char* packet, uint16_t copySize, Session::pointer sender, std::function<bool(Session*)> condition, bool isExceptMe = true);
+
   int Enter(Session::pointer session);
   int Leave(Session::pointer session);
   bool IsOwner(Session::pointer session);
   bool IsReady();
   void BattleStart();
+  bool IsBattleEnd();
+  void BattleEnd();
   int GetClientSize();
   void Attack(Session::pointer session);
-  std::vector<std::shared_ptr<Session>> GetClients();
+  std::list<std::shared_ptr<Session>> GetClients();
 };
 
 #endif  //LOBBYSERVER_ROOM_HPP

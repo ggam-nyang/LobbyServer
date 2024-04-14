@@ -4,6 +4,7 @@
 
 #include "BattleManager.hpp"
 #include "BattleInfo.hpp"
+#include "../server/Session.hpp"
 
 void BattleManager::Attack(std::shared_ptr<BattleInfo> attacker,
                            std::shared_ptr<BattleInfo> defender) {
@@ -18,6 +19,23 @@ void BattleManager::Attack(std::shared_ptr<BattleInfo> attacker,
     }
 
     if (defender->hp_ == 0) {
-        // FIXME: 사망 로직
+
+    }
+}
+
+void BattleManager::Attack(std::shared_ptr<Session> attacker,
+                           std::shared_ptr<Session> defender) {
+    short damage = attacker->battleInfo_->attack_ - defender->battleInfo_->defense_;
+    if (damage < 0) {
+        damage = 0;
+    }
+
+    defender->battleInfo_->hp_ -= damage;
+    if (defender->battleInfo_->hp_ < 0) {
+        defender->battleInfo_->hp_ = 0;
+    }
+
+    if (defender->battleInfo_->hp_ == 0) {
+      defender->state_ = USER_STATE::DIED;
     }
 }

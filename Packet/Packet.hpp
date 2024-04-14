@@ -44,6 +44,7 @@ enum class PACKET_ID : uint16_t {
   ATTACK_REQUEST = 221,
   ATTACK_RESPONSE = 222,
 
+  BATTLE_INFO = 223,
 };
 
 #pragma pack(push, 1)
@@ -285,6 +286,16 @@ struct ATTACK_RESPONSE_PACKET : public PACKET_HEADER {
   }
 
   BATTLE_INFO battleInfos[2]{}; // FIXME: 2명만 전투 가능
+  uint16_t result{};
+};
+
+struct BATTLE_INFO_PACKET : public PACKET_HEADER {
+  BATTLE_INFO_PACKET() : PACKET_HEADER() {
+    PacketId = static_cast<uint16_t>(PACKET_ID::BATTLE_INFO);
+    PacketLength = sizeof(BATTLE_INFO_PACKET);
+  }
+
+  BATTLE_INFO battleInfos[2]{};
   uint16_t result{};
 };
 

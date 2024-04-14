@@ -240,4 +240,10 @@ void ClientPacketManager::ReceivePacket(Client* client, char* pBuf,
     client->ResponseAttack(*packet);
     return;
   }
+
+  if (packetId == PACKET_ID::BATTLE_INFO) {
+    auto packet = reinterpret_cast<BATTLE_INFO_PACKET*>(pBuf);
+    client->ResponseBattleInfo(*packet);
+    return;
+  }
 }

@@ -5,12 +5,14 @@
 #include "Room.hpp"
 #include <iostream>
 #include <utility>
-#include "../BattleInfo//BattleManager.hpp"
+#include "../BattleInfo/BattleManager.hpp"
+#include "../BattleInfo/BattleInfo.hpp"
 #include "Lobby.hpp"
 
 int Room::ID_COUNTER = 0;
 
-Room::Room(Lobby* lobby) : lobby_(lobby), battleManager_() {}
+Room::Room(Lobby* lobby)
+    : lobby_(lobby), battleManager_(std::make_shared<BattleManager>()) {}
 
 std::shared_ptr<Room> Room::create(Lobby* lobby, Session::pointer owner,
                                    std::string room_name) {
@@ -32,8 +34,9 @@ int Room::Enter(Session::pointer session) {
 }
 
 int Room::Leave(Session::pointer session) {
-//  clients_.remove(session);
-  session->setRoom(nullptr);  // FIXME: Room에서 Session->room을 설정하는 것이 불편..
+  clients_.remove(session);
+  session->setRoom(
+      nullptr);  // FIXME: Room에서 Session->room을 설정하는 것이 불편..
 
   return 1;
 }
@@ -73,7 +76,28 @@ bool Room::IsReady() {
   return true;
 }
 
-void Room::BattleStart() {}
+void Room::BattleStart() {
+  for (const auto& client : clients_) {
+    client->state_ = USER_STATE::BATTLE;
+  }
+}
+
+bool Room::IsBattleEnd() {
+  for (const auto& client : clients_) {
+    if (client->state_ == USER_STATE::DIED) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void Room::BattleEnd() {
+  for (const auto& client : clients_) {
+    client->state_ = USER_STATE::ROOM;
+    client->battleInfo_->Reset();
+  }
+}
 
 int Room::GetClientSize() {
   return clients_.size();
@@ -85,10 +109,11 @@ void Room::Attack(Session::pointer session) {
       continue;
     }
 
-    battleManager_->Attack(session->battleInfo_, client->battleInfo_);
+//    battleManager_->Attack(session->battleInfo_, client->battleInfo_);
+    battleManager_->Attack(session, client);
   }
 }
 
-std::vector<std::shared_ptr<Session>> Room::GetClients() {
+std::list<std::shared_ptr<Session>> Room::GetClients() {
   return clients_;
 }
