@@ -13,7 +13,7 @@
 ```bash
 $ gh repo clone ggam-nyang/LobbyServer
 $ cd LobbyServer
-$ cmake -S . -B build
+$ cmake -S . -Child build
 $ cmake --build build
 ```
 

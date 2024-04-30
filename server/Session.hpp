@@ -30,6 +30,7 @@ enum class USER_STATE : uint16_t {
 
 class Session : public std::enable_shared_from_this<Session> {
   static int ID_COUNTER;
+
  public:
   using pointer = std::shared_ptr<Session>;
 

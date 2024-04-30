@@ -20,8 +20,8 @@ using std::string;
 class Lobby;
 
 class Server {
-    asio::io_service io_context_;
-    shared_ptr<asio::io_service ::work> work_;
+    asio::io_context io_context_;
+    shared_ptr<asio::io_context ::work> work_;
     asio::ip::tcp::endpoint endpoint_;
     asio::ip::tcp::acceptor acceptor_;
     std::vector<Session::pointer> sessions_{};
