@@ -109,7 +109,7 @@ void Client::StopAll() {
 void Client::Battle() {
   if (state_ != USER_STATE::BATTLE)
     return;
-  is_get_input_ = false;
+//  is_get_input_ = false;
 
   timer_.expires_from_now(std::chrono::seconds(1));
   timer_.async_wait(
