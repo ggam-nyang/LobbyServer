@@ -41,7 +41,6 @@ class Client {
   boost::asio::posix::stream_descriptor input_;
   std::mutex lock_;
   boost::asio::steady_timer timer_;
-  std::atomic<bool> is_get_input_ = true;
 
  public:
   USER_STATE state_ = USER_STATE::NONE;

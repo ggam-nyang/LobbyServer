@@ -5,6 +5,7 @@
 #include "Client.h"
 #include "ClientPacketManager.hpp"
 
+
 Client::Client(std::string ip_address, unsigned short port_num)
     : endpoint_(asio::ip::address::from_string(ip_address), port_num),
       packetManager_(this),
@@ -14,7 +15,7 @@ Client::Client(std::string ip_address, unsigned short port_num)
       timer_(io_context_) {}
 
 void Client::Start() {
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 4; i++)
     thread_group_.create_thread([this]() { WorkerThread(); });
 
   // thread 잘 만들어질때까지 잠시 기다리는 부분
@@ -60,9 +61,6 @@ void Client::OnConnect(const system::error_code& ec) {
 }
 
 void Client::Send() {
-  if (!is_get_input_) {
-    return;
-  }
   getline(std::cin, writeBuffer_);
   packetManager_.SendPacket(this, writeBuffer_);
 }
@@ -98,7 +96,8 @@ void Client::ReceiveHandle(const system::error_code& ec, size_t size) {
   }
 
   packetManager_.ReceivePacket(this, buffer_.data(), size);
-  Receive();
+//  Receive();
+  io_context_.post([this]() { Receive(); });
 }
 
 void Client::StopAll() {
@@ -109,7 +108,6 @@ void Client::StopAll() {
 void Client::Battle() {
   if (state_ != USER_STATE::BATTLE)
     return;
-  is_get_input_ = false;
 
   timer_.expires_from_now(std::chrono::seconds(1));
   timer_.async_wait(
@@ -267,6 +265,5 @@ void Client::ResponseBattleInfo(BATTLE_INFO_PACKET packet) {
   if (packet.result == 2 || state_ != USER_STATE::BATTLE) {
     cout << "배틀이 종료되었습니다." << endl;
     state_ = USER_STATE::ROOM;
-    is_get_input_ = true;
   }
 }
