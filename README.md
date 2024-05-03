@@ -37,8 +37,3 @@ $ cmake --build build
 ## 블로그 포스팅
 - [소켓 통신 패킷 오류](https://ggam-nyang.github.io/c++/PacketProcess/)
 - [메모리 사이클 관리](https://ggam-nyang.github.io/c++/MemoryCycle/)
-
-## 시퀀스 다이어그램
-![Sequence1](assets/sequence1.png)
-![Sequence2](assets/sequence2.png)
-![Sequence3](assets/sequence3.png)

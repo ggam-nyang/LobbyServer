@@ -145,7 +145,10 @@ bool ClientPacketManager::SendAttackPacket(Client* client,
   auto packet = ATTACK_REQUEST_PACKET();
   packet.targetId = targetId;
 
-  Send(reinterpret_cast<char*>(&packet), packet.PacketLength);
+//  Send(reinterpret_cast<char*>(&packet), packet.PacketLength);
+  client_->sock.async_write_some(
+      asio::buffer(reinterpret_cast<char*>(&packet), packet.PacketLength),
+      [this, packet](const system::error_code& ec, size_t) {});
 }
 
 void ClientPacketManager::Send(const char* packet, const uint16_t copySize) {
