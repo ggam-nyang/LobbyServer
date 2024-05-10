@@ -52,7 +52,6 @@ enum class PACKET_ID : uint16_t {
 struct PACKET_HEADER {
   uint16_t PacketLength;
   uint16_t PacketId;
-  uint8_t Type;  //압축여부 암호화여부 등 속성을 알아내는 값
 };
 
 const int PACKET_HEADER_SIZE = sizeof(PACKET_HEADER);

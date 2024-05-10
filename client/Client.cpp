@@ -116,7 +116,6 @@ void Client::Battle() {
 
 void Client::BattleHandler(const system::error_code& ec) {
   if (state_ != USER_STATE::BATTLE) {
-    io_context_.post([this]() { Send(); });
     return;
   }
 
